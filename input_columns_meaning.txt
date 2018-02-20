@@ -1,0 +1,43 @@
+This document is for people new to the ICQ's formatting. Each observation will be inputted in an 80 column format 
+where each column means the following:
+
+● columns 1-3 is name designation for short period comets only.
+● 4-9 are the standard comet name designation.
+● 10 denotes if the comet has multiple nuclei.
+● 11 is always a blank space.
+● 12 – 24 is the date of observation in YYYY MM DD.DD format.
+● 25 is always a blank space.
+● 26 is for “notes on extinction corrections and other special notes.” This column is equivalent as column 75
+  wherethe latter being used if column 26 is taken. The meaning of the letters that appear in
+  these columns can be found in the “Special Notes Key” section of the file ICQ website (below). 
+● 27 is the magnitude method used. The meanning of each letter can be found in the website below.
+● 28, if a “[“ is present then the comet was not seen that night. Additionally, a “[“ in this column
+could represent that the reported magnitude was an upper limit estimate.
+● 28 through 32, total visual magnitude estimate
+● 33, if a “:” is present then the comet was seen under poor conditions
+● 34-35 is the reference catalog used.
+● 36-40 instrument aperture in centimeters
+● 41 is instrument type. This column is for any telescopes or binoculars used in observations (not
+CCDs). The proper key to use is the “Instrument Key” section on the website. Special note, if
+aperture size is 0.0 or instrument type is E then naked eye observations were used.
+● 42-43, focal ratio of instrument entered as one or two-digit number flush right (i.e. written in
+the form AB where B is always the ones place and A is a non-leading zero ten’s place).
+● 44-47, magnification used, again written flush right.
+● 48, is always a blank space.
+● 49, error estimate for coma diameter (i.e. whether given value is an upper or lower bound).
+● 50-54, coma diameter in arc minutes.
+● 55, special note on physical appearance of central condensation of the comet.
+● 56-57, degree of condensation of the comet. If 57 is a “/” instead of a number then it is an
+approximate value.
+● 58 is always a white space.
+● 59, error estimate for tail length (see column 49).
+● 60-64, tail length in degrees.
+● 65-67, direction tail is pointed.
+● 68 is always a white space.
+● 69-74, ICQ reference publication.
+● 75, see column 26.
+● 76-80, observer name designation.
+
+Handy references: 
+http://www.icq.eps.harvard.edu/ICQKeys.html
+http://www.icq.eps.harvard.edu/ICQRec.html
