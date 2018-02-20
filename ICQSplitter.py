@@ -35,7 +35,7 @@ curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-19-19
 
 input_file = 'input_data.txt'			#Name of your input file
 small_body_designation = '902008;'			#Name of your small body ex) 'ceres' or 'eris'
-JPL_Time_Increment = 30 					#How much to increment JPL queries minutes up to 60.
+JPL_Time_Increment = 30 					#How much to increment JPL queries in minutes up to 60.
 ouput_file_kept_points = 'keepers.csv'		#Name of output file for points that meet all sorting criterion
 output_file_rejected_points = 'removed.csv'	#Name of output file for points that were removed from the data
 
@@ -62,7 +62,7 @@ def deletearow(i):
 	for x in range (len(metalist)-1, -1, -1):
 		del metalist[x][i]
 
-#Adds a the i-th deleted observation to the 'rejected.csv' file with y as a reason it was removed
+#Adds the i-th deleted observation to the 'rejected.csv' file with y as a reason it was removed
 #removed_metalist is the same as metalist except for the rejected points during sorting
 def addToremoved(i,y):
 	for x in range (len(metalist)-1, -1, -1):
