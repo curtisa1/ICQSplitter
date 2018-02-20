@@ -35,7 +35,7 @@ curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-19-19
 
 input_file = 'input_data.txt'			#Name of your input file
 small_body_designation = '902008;'			#Name of your small body ex) 'ceres' or 'eris'
-JPL_Time_Increment = 30 					#How much n minutes up to 60.
+JPL_Time_Increment = 30 					#How much to increment JPL queries minutes up to 60.
 ouput_file_kept_points = 'keepers.csv'		#Name of output file for points that meet all sorting criterion
 output_file_rejected_points = 'removed.csv'	#Name of output file for points that were removed from the data
 
