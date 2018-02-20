@@ -1,7 +1,10 @@
 # ICQSplitter
 ICQSplitter is a Python package that will take data from the International Comet Quarterly (ICQ), Comet OBServation database (COBS), and
 JPL Horizons and produce lightcurves of the comet with adjustable corrections. These data are usually provided in an 80
-column text file format. See 'input_columns_meaning.txt' for a description of what each column represents.
+column text file format. See 'input_columns_meaning.txt' for a description of what each column represents. 
+
+The program cofirmed works on Python 3.6.3. Remember to have the file 'Schleicher_Composite_Phase_Function.txt' in your 
+working directory if you wish to perform phase angle corrections.
 
 In analyzing data from multiple observers, questions arise of justifying which data to reject without biasing results. Moreover,
 instrument calibration is not readily available to amateurs nor are such calibrations without flaw.
@@ -51,3 +54,14 @@ The command line argument --phase will calculate a phse angle corrected magnitud
 is the raw magnitude and Φ(ϴ) is Schleicher's composite phase function.
 
 --heliocentric and --phase can be combined such that 𝑚helio = 𝑚app -5log(Δ) is calculated followed by mph = 𝑚helio+2.5𝑙𝑜𝑔(Φ(ϴ)). All magnitudes along with heliocentric distance, r, are reported in the 'keepers.csv' file.
+
+curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-19-19
+
+*	v1.0: Sorts problematic entries from data, performs heliocentric and phase corrections.
+
+TODO:
+-Add option to graph r vs mapp, r vs mhelio, and r vs mph.
+-Remove necessity of having 'Schleicher_Composite_Phase_Function.txt' in working directory.
+-Add ability to increment the JPLHorizon query in other intervals besides 1-60 minutes.
+-Add checks for all reference star catalogs that have special requirements as per ICQ's website.
+-Add statistical analysis techniques to account for observer differences.
