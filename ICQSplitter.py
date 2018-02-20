@@ -22,6 +22,10 @@ or both to the kept points.
 
 curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-19-19
 
+Available command line argument:
+--heliocentric
+--
+
 
 *	v1.0: Sorts problematic entries from data, performs heliocentric and phase corrections.
 
