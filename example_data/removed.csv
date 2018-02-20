@@ -1,0 +1,12 @@
+col 1-3 : short period comet designation,col 4-9 : Standard comet designation,col 10 : multiple nuclei present?,col 12-15 : year observed,col 17-18 : month observed,col 20-24,col 26 : special note / extinction note,col 27 : Magnitude collection method,col 28-32 : visual magnitude estimate,col 33 : poor conditions?,col 34 - 35 : reference catalog,col 36-40 : instrument aperture in centimeters,col 41 : instrument type,col 42 - 43 : focal ratio,col 44-47 : magnification used,col 49 : error estimate for coma diameter,col 50 - 54 : coma diameter in arcminutes,col 55 : special note on central condensation of comet,col : 56 -57 : degree of condensation (note / means estimate),col 59 - 64 : error of tail approximation and tail approximation,col 65 - 67 : direction tail is pointed,col 69-74 : ICQ reference publication,col 75 : second special note / extinction note ,col 76-80 : observer name,Point removed,Reason Point was Removed
+,1995O1,,1996,07,06.17,,S,5.9,,HP,5.0,B,,10,,13,,6,,,ICQ 99,,BOR,REMOVED POINT,No magnitude reported
+,1995O1,,1996,06,26.21,,S,6.1,,HP,5.0,B,,10,,10,,5/,,,ICQ 99,,BOR,REMOVED POINT,No magnitude reported
+,1995O1,,1996,05,25.30,a,S,6.9,,AA,5.0,B,,10,,9,,6,,,ICQ 99,,BOR,REMOVED POINT,No magnitude reported
+,1995O1,,1996,04,18.36,,S,8.0,,HR,5.0,B,,10,,5,,4,,,ICQ 99,,BOR,REMOVED POINT,No magnitude reported
+,1995O1,,1995,10,12.98,a,S,10.4,,AC,40.6,L,5,70,,1.2,,6,,,ICQ 98,,BOR,REMOVED POINT,No magnitude reported
+,1995O1,,1996,07,12.15,,B,6.1,,HP,5.0,B,,10,,,,,,,ICQ 99,,BOR,REMOVED POINT,Two entries on the same date by same observer
+,1995O1,,1996,07,11.16,,B,6.0,,HP,5.0,B,,10,,,,,,,ICQ 99,,BOR,REMOVED POINT,Two entries on the same date by same observer
+,1995O1,,1996,07,06.17,,B,6.0,,HP,5.0,B,,10,,,,,,,ICQ 99,,BOR,REMOVED POINT,Two entries on the same date by same observer
+,1995O1,,1995,09,30.01,,S,10.5,,AC,40.6,L,5,90,,,,,,,ICQ 96,,BOR,REMOVED POINT,Two entries on the same date by same observer
+,1995O1,,1995,09,29.01,,S,10.5,,AC,40.6,L,5,90,,,,,,,ICQ 96,,BOR,REMOVED POINT,Two entries on the same date by same observer
+,1995O1,,1995,09,28.01,,S,10.4,,AC,40.6,L,5,90,,,,,,,ICQ 96,,BOR,REMOVED POINT,Two entries on the same date by same observer
