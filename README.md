@@ -32,7 +32,7 @@ Michael Mommert's CALLHORIZONS package as well as Dave Schleicher's Composite Du
 here: http://asteroid.lowell.edu/comet/dustphase.html that will perform heliocentric corrections, phase angle corrections,
 or both to the kept points.
 
-The command line argument --heliocentric will calculate a heliocentric corrected magnitude 𝑚helio = 𝑚app -5log(Δ). 
+The command line argument --heliocentric will calculate a heliocentric corrected magnitude mhelio = mapp -5log(Δ). 
 Where mapp is the apparent magnitude reported by the observer, delta is the distance from the observer to the target in au taken 
 from JPL HORIZONS via Michael Mommert's CALLHORIZONS package written in this code in queryJPL(). 
 
@@ -50,10 +50,10 @@ query JPL at 30 minute increments before running into their 100,000 epoch query 
 in delta and phase angle during a 30 minute (or even 1 hour) period is insignificant to the fact that amateurs report
 these magnitudes to one decimal place.
 
-The command line argument --phase will calculate a phse angle corrected magnitude mph = 𝑚app+2.5𝑙𝑜𝑔(Φ(ϴ)) where mapp
+The command line argument --phase will calculate a phse angle corrected magnitude mph = mapp+2.5*log(Φ(ϴ)) where mapp
 is the raw magnitude and Φ(ϴ) is Schleicher's composite phase function.
 
---heliocentric and --phase can be combined such that 𝑚helio = 𝑚app -5log(Δ) is calculated followed by mph = 𝑚helio+2.5𝑙𝑜𝑔(Φ(ϴ)). All magnitudes along with heliocentric distance, r, are reported in the 'keepers.csv' file.
+--heliocentric and --phase can be combined such that mhelio = mapp -5log(Δ) is calculated followed by mph = mhelio+2.5*loglog(Φ(ϴ)). All magnitudes along with heliocentric distance, r, are reported in the 'keepers.csv' file.
 
 curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-19-19
 
