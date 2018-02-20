@@ -59,6 +59,22 @@ curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-19-19
 
 *	v1.0: Sorts problematic entries from data, performs heliocentric and phase corrections.
 
+Sources of error (albeit miniscule) which exist in this code include:
+-Each observation in the data is only compared to JPL HORIZONS to the nearest half-hour, so the extracted phase 
+ angles and deltas are only good to the nearest half hour.
+-Schleicher provides his phase function to whole number degrees. So for instance if the ephemerides says the object had
+ a phase angle of 30.67 at a certain date / time, then the composite phase function normalized to 0 degrees (column 2 in 
+ 'Schleicher_Composite_Phase_Function.txt') that is used in calculations would be 0.4142. Ideally this could be extrapolated so 
+ that no rounding is performed for the phase angle, but that is deemed not necessary at thistime.
+ -The observatory code used in JPL queries is 500, the center of the Earth, as it is unknown where the observer is just
+  based off of their name. If that information is available then we could do a dynamic search based off of each observer's
+  individual location.
+
+Although error exists, it should be noted that not performing heliocentric distance or phase angle corrections
+causes much more error than what is present in this code. As a comet's geocentric distance only varies by about 0.001 - 0.01 au over
+a thirty minute interval and phase angle by even smaller amounts, this error is deemed reasonable seeing as these 
+apparent magnitudes are only reported to the first decimal place by observers anyway.
+
 TODO:
 -Add option to graph r vs mapp, r vs mhelio, and r vs mph.
 -Remove necessity of having 'Schleicher_Composite_Phase_Function.txt' in working directory.
