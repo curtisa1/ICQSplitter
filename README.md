@@ -1,7 +1,8 @@
 # ICQSplitter
-ICQSplitter is a Python package that will take data from the International Comet Quarterly (ICQ), Comet OBServation database (COBS), and
-JPL Horizons and produce lightcurves of the comet with adjustable corrections. These data are usually provided in an 80
-column text file format. See 'input_columns_meaning.txt' for a description of what each column represents. 
+ICQSplitter is a Python package that will take data from the International Comet Quarterly (ICQ), 
+Comet OBServation database (COBS), and JPL Horizons and produce lightcurves of a comet of interest 
+with adjustable corrections available.  These data are usually provided in an 80 column text file format. 
+See 'input_columns_meaning.txt' for a description of what each column represents. 
 
 The program cofirmed works on Python 3.6.3. Remember to have the file 'Schleicher_Composite_Phase_Function.txt' in your 
 working directory if you wish to perform phase angle corrections.
