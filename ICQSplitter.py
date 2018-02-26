@@ -166,6 +166,8 @@ def checkTelescopesandBinocMethods(numberremovedfortelescopeunder5_4, numberremo
 	telescopemethod = ['C','R','D','I','J','L','M','q','Q','r','S','T','U','W','Y']
 	binocularmethod = ['A','B','N','O']
 	for k in range (len(metalist[2])-1,-1,-1):
+		if (metalist[8][k] == ""):
+			continue
 		if ((metalist[12][k] in telescopemethod) and (float(metalist[8][k])<5.4)):
 			reasonForDelete = 5
 			addToremoved(k-1,reasonForDelete)
