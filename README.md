@@ -1,7 +1,11 @@
 # ICQSplitter
+**Citing this Repository**
+
 As per AAS's style guidelines (availble here: http://journals.aas.org/authors/references.html), please cite the DOI for the most recent software release as:
 
 Anthony Curtis. 2018, ICQSplitter: Python Tool for Handling Visual Magnitudes of Comets (Version v1.0), Zenodo, http://doi.org/10.5281/zenodo.1188280, as developed on GitHub.com
+
+**About this Software**
 
 ICQSplitter is a Python package that will take data from the International Comet Quarterly (ICQ), 
 Comet OBServation database (COBS), and JPL Horizons and produce lightcurves of a comet of interest 
@@ -54,6 +58,8 @@ does require much more sorting later on. Additionally, for date ranges over long
 query JPL at 30 minute increments before running into their 100,000 epoch query limit. However, the change
 in delta and phase angle during a 30 minute (or even 1 hour) period is insignificant to the fact that amateurs report
 these magnitudes to one decimal place.
+
+**Command Line Arguments**
 
 The command line argument --phase will calculate a phse angle corrected magnitude mph = mapp+2.5*log(Φ(ϴ)) where mapp
 is the raw magnitude and Φ(ϴ) is Schleicher's composite phase function.
