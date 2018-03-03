@@ -1,4 +1,7 @@
 # ICQSplitter
+https://zenodo.org/badge/DOI/10.5281/zenodo.1188280.svg
+
+
 ICQSplitter is a Python package that will take data from the International Comet Quarterly (ICQ), 
 Comet OBServation database (COBS), and JPL Horizons and produce lightcurves of a comet of interest 
 with adjustable corrections available.  These data are usually provided in an 80 column text file format. 
