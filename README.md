@@ -1,6 +1,7 @@
 # ICQSplitter
-https://zenodo.org/badge/122151399.svg
+As per AAS's style guidelines (availble here: http://journals.aas.org/authors/references.html), please cite the DOI for the most recent software release as:
 
+Anthony Curtis. 2018, ICQSplitter: Python Tool for Handling Visual Magnitudes of Comets (Version v1.0), Zenodo. http://doi.or/10.5281/zenodo.1188280, as developed on GitHub.com
 
 ICQSplitter is a Python package that will take data from the International Comet Quarterly (ICQ), 
 Comet OBServation database (COBS), and JPL Horizons and produce lightcurves of a comet of interest 
