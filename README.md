@@ -1,5 +1,5 @@
 # ICQSplitter
-https://zenodo.org/badge/latestdoi/122151399
+https://zenodo.org/badge/122151399.svg
 
 
 ICQSplitter is a Python package that will take data from the International Comet Quarterly (ICQ), 
