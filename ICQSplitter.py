@@ -42,6 +42,7 @@ small_body_designation = '902011;'			#Name of your small body ex) 'ceres' or 'er
 JPL_Time_Increment = 30 					#How much to increment JPL queries in minutes up to 60.
 ouput_file_kept_points = 'keepers.csv'		#Name of output file for points that meet all sorting criterion
 output_file_rejected_points = 'removed.csv'	#Name of output file for points that were removed from the data
+CCD_Bool = 1					# If 1 then using only CCD data. If 0 then using visual magnitude data
 
 ###############################
 ####### Input Arguments #######
@@ -445,12 +446,14 @@ def main():
 	checkTelescopesandBinocMethods(numberremovedfortelescopeunder5_4, numberremovedforbinocularunder1_4)
 
 	numberremovedfornotspecifiedmagmethod = 0
-	reasonForDelete = 7
-	removeForMagMethod(numberremovedfornotspecifiedmagmethod)
+	if CCD_Bool == 0:
+		reasonForDelete = 7
+		removeForMagMethod(numberremovedfornotspecifiedmagmethod)
 
 	numberremovedforSCcatalog = 0
-	reasonForDelete = 9
-	checkSCcatalog(numberremovedforSCcatalog)
+	if CCD_Bool ==0:
+		reasonForDelete = 9
+		checkSCcatalog(numberremovedforSCcatalog)
 
 	numdelforduplicatedate = 0
 	reasonForDelete = 0
