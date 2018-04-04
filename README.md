@@ -3,7 +3,7 @@
 
 Since some people have asked, as per AAS's style guidelines (availble here: http://journals.aas.org/authors/references.html), please cite the DOI for the most recent software release as:
 
-Anthony Curtis. 2018, ICQSplitter: Python Tool for Handling Visual or CCD Magnitudes of Comets (Version v1.0), Zenodo, http://doi.org/10.5281/zenodo.1188280, as developed on GitHub.com
+Anthony Curtis. 2018, ICQSplitter: Python Tool for Handling Visual or CCD Magnitudes of Comets (Version v1.0), Zenodo, http://doi.org/10.5281/zenodo.1188279, as developed on GitHub.com
 
 **About this Software**
 
