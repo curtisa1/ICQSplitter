@@ -1,0 +1,142 @@
+﻿----------------------- Page 1-----------------------
+
+1      Appendix 
+
+In analyzing visual data from multiple observers, the questions inevitably arise of 
+which data to reject, and under what justiﬁcation, and whether combining data 
+from  observers,  each  with  his  or  her  own  systematic  errors,  leads  to  a  biased 
+result.  Without  instrumental  calibration,  there  is  no  certain  answer  to  these 
+questions,  such  calibration  is  itself  problematic, 
+and in any case is not available for the observations discussed here. 
+    We  oﬀer a systematic approach to combining data from multiple  observers 
+yielding a self-consistent consensus ﬁt.  In application to comet Hale-Bopp (Womack et al., in preparation), 
+the  procedure  does  not  signiﬁcantly  aﬀect  the  grossest  measure,  namely  the 
+slope  of magnitude  vs. log distance,  but,  applied to  data  already corrected to 
+heliocentric distances and for phase, does reduce the  statistical error bars. 
+    We assume three categories of errors: 
+
+   1.  Every observer reports the brightness of an object on a scale that is shifted 
+       up or down from other observers, but by the same number of magnitudes, 
+       δobs,  independent  of  distance  or  brightness.   Without  instrumental  cali- 
+       bration, we can best estimate δobs as that observer’s mean deviation from 
+       a consensus ﬁt to the data (that is, an average). 
+
+   2.  Some observers may have a slope bias, underestimating the brightness of 
+       dimmer  objects  and overestimating those  of brighter ones,  or  vice-versa. 
+       While it is diﬃcult to correct for such error without calibration, the bias 
+       can  be  detected  (relative  to  the  consensus  ﬁt),  and  that  observer’s  data 
+       discarded. 
+
+   3.  Finally, some observers may have a great deal of scatter in their data but 
+       no bias.  We can weight these observations less in ﬁts. 
+
+1.1     Method 
+
+We  seek  a  consensus  ﬁt  to  the  data. 
+Hale-Bopp  exhibits  small  but  noticeable  deviations  from  a  power  law  (intensity  ∼ 
+r−s) on time (distance) scales larger than any outbursts. In particular, nearly 
+
+all  pre-perihelion  data  between  2  and  1  a.u.  suggest  a  negative  curvature  in 
+the graph of magnitude against log distance (see figures in example_data).  A straight-line ﬁt 
+would  penalize  observations that  report this  feature  accurately.      Based  on  the 
+total number of apparent features between the closest (0.91 a.u.)            and furthest 
+(8.15 a.u.)  observation, we ﬁt to ﬁfth-order polynomials.  The eﬀect, is to smooth the data. 
+
+    The  deviations  between  an  observer’s  measurements  and  the  consensus  ﬁt 
+at  the  same  distance  are  considered  noise.    The  set  of  all  such  deviations  by 
+one observer deﬁnes the noise distribution for that observer, characterized by a 
+mean δ_obs, variance σ2_obs     , skewness, excess kurtosis, etc. 
+                    
+    To  compute  the  self-consistent ﬁt,  we  iterate  the  following steps  until  con- 
+vergence  to  a  fractional  tolerance  of  0.0001  (absolute  tolerance  if  any  ﬁtting 
+parameter is less than 0.0001) of all six polynomial ﬁtting parameters: 
+
+                                             1 
+
+----------------------- Page 2-----------------------
+
+Table 1:  Best-ﬁt slopes for pre-perihelion and post-perihelion obervations before 
+and after corrections and the  self-consistent method  of this  appendix.         Lines 4 
+and 5 use self-consistently shifted magnitudes and weight each observer’s data 
+inversely as σobs, the variance of the noise.  The ﬁtting method reduces statistical 
+error but does not signiﬁcantly alter the slope estimates. 
+
+                                                   pre-perihelion     post-perihelion 
+   1.  raw data                                    11.25    ±0.13     12.70    ±0.06 
+   2.  heliocentric correction only                 8.01    ±0.05      9.17    ±0.07 
+   3.  heliocentric and phase corrections           9.11    ±0.05      9.96    ±0.07 
+
+   4.  self-consistent shifts                       9.19    ±0.02      9.88    ±0.03 
+   5.  drop observers, self-consistent shifts       9.08    ±0.03      9.86    ±0.04 
+
+   1.  We ﬁt a ﬁfth-order polynomial through all the data of the (possibly shifted) 
+       magnitudes against log distance by the method of least squares (Legendre,    1803],
+       weighting  each  observation  inversely  as  the  observer’s 
+       variance  of  deviations,  σ2_obs    (Numerical Recipes). Initially,  the obs 
+       magnitudes  have  been  corrected  to  heliocentric  distance  and  for  phase 
+       but  have  not  been  shifted.        Also  initially,  the  weights 
+       are all equal, because we do not know the distributions of deviations. 
+
+   2.  Using the same data as in 1, we can also ﬁt a straight line, recovering the 
+       slope  (power  law)  −s  and  statistical  error  bars  on  that  ﬁt  based  on  the 
+       shifted, weighted data. 
+
+   3.  For each observer, we consider the distribution of deviations between the 
+       observations and the ﬁt at the given distance (i.e., in the graph, the verti- 
+       cal vectors between data points and the polynomial ﬁt).  For each observer 
+       separately, we treat the distribution as noise and estimate the mean, δobs, 
+       and variance, σ2_obs 
+
+   4.  For each observer separately, we shift all magnitudes by −δ_obs as computed 
+       in 3. 
+
+    For the present data set, these iterations converge to the speciﬁed tolerance 
+after  between  nine  and  fourteen  iterations.    We  now  have  a  self-consistent  ﬁt 
+and  set  of  shifted  data.  Row  4  of  Table  1.1  shows  small  changes  in  best-ﬁt 
+slopes after the procedure.  As reﬂected in visibly smaller scatter, 
+the statistical error ﬁtting to a straight line has been cut roughly in half.  Note 
+that non-straight-line features in the consensus polynomial ﬁt limit how far the 
+statistical error bars in a straight-line ﬁt can shrink. 
+    The self-consistent procedure has eliminated the need to discard data arbi- 
+trarily  ( e.g.,  points  more  than  some  number  of  standard  deviations  above  or 
+below  a  consensus  ﬁt,  which  otherwise  would  throw  oﬀ  least-squares  ﬁts)  by 
+
+                                            2 
+
+----------------------- Page 3-----------------------
+
+weighting points inversely as the observer’s variance.  However, as noted above, 
+an  observer  whose  systematic  error  changes  with  brightness  would  still  aﬀect 
+the slope adversely.  We can detect such a systematic problem by applying Stu- 
+dent’s t-test to each observer’s data set, comparing the  diﬀerence  of the  mean 
+deviation from the consensus ﬁt in the ﬁrst half of the observer’s data (sorted by 
+distance) to the mean deviation in the second half.  Since the variances of the two 
+halves may not be equal, we normalize by the “pooled variance” ([Numerical 
+Recipes])  to  get an  approximate t-statistic.       Assuming  approximately Gaus- 
+sian noise (not always justiﬁed), we calcluate the p  (probability) value that the 
+t-statistic would be as large as observed or larger under the null hypothesis that 
+ﬁrst and second halves of the data were drawn from the same distribution, i.e., 
+that the observer did not contribute bias to the slope relative to the consensus. 
+    For a p  value less than 0.05, we reject the null hypothesis and say that the 
+observer  “fails”  the  t-test; that  is,  his  or  her  data  bias  the  slope. We  then 
+discard such observers from the data set and repeat the self-consistent iteration 
+(steps 1–4).  If repeating the t-test at the end of second set of iterations resulted 
+in more observers failing the t-test, we would need to repeat the procedure until 
+no  new  observers  were  discarded.     For  the  present  data  set,  no  new  observers 
+failed the t-test after the second set of iterations. 
+    As  shown  by  Line  5  of  Table  1.1,  throwing  out  observers  results  in  small 
+changes  in  the  slopes.   For  the  pre-perihelion  data,  seven  observers  out  of  17 
+were discarded, accounting for 449 of the original 1,045 data points.           For post- 
+perihelion  data,  three  out  of  13  observers  were  discarded,  accounting  for  207 
+out of the original 491 data points. 
+    For  comet Hale-Bopp,  the  self-consistent  procedure  resulted  in  ad- 
+justments to the slope roughly comparable to the original statistical error bars, 
+while  cutting  these  approximately in half.     These  changes are far smaller than 
+those associated with correcting for heliocentric distance and phase.  The obser- 
+vations considered in the present work were taken by skilled amateurs calibrated 
+by  eye  to  stars  in  generally  reliable  catalogues. Future  work  may  rely  on  less 
+homogeneous amateur networks, in which case a self-consistent method for com- 
+bining and weighting magnitudes, and discarding subsets with systematic slope 
+bias, could prove useful. 
+
+                                             3 
