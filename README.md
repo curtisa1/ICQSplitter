@@ -84,7 +84,7 @@ is the raw magnitude and Φ(ϴ) is Schleicher's composite phase function.
 curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-4-4
 
 *	v1.0: Sorts problematic entries from data, performs heliocentric distance and phase angle corrections.
-*	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements.
+*	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements, fixed encoding issue reading in strange characters
 *	v2.0: Added statistical correction and plotting command line arguments!
 
 Sources of error (albeit miniscule) which exist in this code include:
