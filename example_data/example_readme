@@ -20,3 +20,5 @@ You will get the following output:
 > mhelio found, adding to plot
 > mph found, adding to plot
 > No statistical corrections found, now plotting...
+
+And the files 'keepers.csv', 'removed.csv', 'graph_0.png', 'graph_1.png', and 'graph_2.png' should be created (as seen in the /example_data/ repository.
