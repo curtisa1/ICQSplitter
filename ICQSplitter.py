@@ -41,7 +41,7 @@ Available command line arguments (type these into terminal when compiling progra
 --plot
 
 *	v1.0: Sorts problematic entries from data, performs heliocentric distance and phase angle corrections.
-*	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements.
+*	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements, fixed encoding issue reading in strange characters
 *	v2.0: Added statistical correction and plotting command line arguments!
 
 
