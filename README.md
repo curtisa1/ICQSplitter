@@ -1,9 +1,9 @@
 # ICQSplitter
 **Citing this Repository**
 
-As per AAS's style guidelines (availble here: http://journals.aas.org/authors/references.html), please cite the DOI for the most recent software release as:
+Since some people have asked, as per AAS's style guidelines (availble here: http://journals.aas.org/authors/references.html), please cite the DOI for the most recent software release as:
 
-Anthony Curtis. 2018, ICQSplitter: Python Tool for Handling Visual Magnitudes of Comets (Version v1.0), Zenodo, http://doi.org/10.5281/zenodo.1188280, as developed on GitHub.com
+Anthony Curtis. 2018, ICQSplitter: Python Tool for Handling Visual or CCD Magnitudes of Comets (Version v1.0), Zenodo, http://doi.org/10.5281/zenodo.1188280, as developed on GitHub.com
 
 **About this Software**
 
@@ -59,6 +59,17 @@ query JPL at 30 minute increments before running into their 100,000 epoch query 
 in delta and phase angle during a 30 minute (or even 1 hour) period is insignificant to the fact that amateurs report
 these magnitudes to one decimal place.
 
+Users may also perform statistical corrections with the --stats command line argument. Please see the file
+'statistics_method_appendix.txt' for an understanding of what this command does. (note at least one of --heliocentric
+and --phase must be used along with --stats to query JPL). WARNING: --stats should only be used for one
+dates corresponding to one revolution around the sun for that object (i.e., if a comet has data with perihelions occuring on dates
+x, y, and z then this function will work for dates between x and z exclusive, separating it into pre-perihelion data in range (x,y] and
+post-perihelion data in range (y,z) ).
+
+The command line argument --plot will also plot any available data (i.e., any combination of raw magnitudes, mehlio, mphase, and 
+mshift Vs. heliocentric distance). (note at least one of --heliocentric and --phase must be used along with --plot to query JPL).
+
+
 **Command Line Arguments**
 
 The command line argument --phase will calculate a phse angle corrected magnitude mph = mapp+2.5*log(Φ(ϴ)) where mapp
@@ -66,9 +77,15 @@ is the raw magnitude and Φ(ϴ) is Schleicher's composite phase function.
 
 --heliocentric and --phase can be combined such that mhelio = mapp -5log(Δ) is calculated followed by mph = mhelio+2.5*loglog(Φ(ϴ)). All magnitudes along with heliocentric distance, r, are reported in the 'keepers.csv' file.
 
-curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-19-19
+--stats performs statistical corrections outlined in 'Statistics_method_appendix.txt'
 
-*	v1.0: Sorts problematic entries from data, performs heliocentric and phase corrections.
+--plot plots all available data (i.e., all combinations of mraw, mhelio, mphase, and mshift, depending on what the user calculates).
+
+curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-4-4
+
+*	v1.0: Sorts problematic entries from data, performs heliocentric distance and phase angle corrections.
+*	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements.
+*	v2.0: Added statistical correction and plotting command line arguments!
 
 Sources of error (albeit miniscule) which exist in this code include:
 -Each observation in the data is only compared to JPL HORIZONS to the nearest half-hour, so the extracted phase 
@@ -86,9 +103,8 @@ causes much more error than what is present in this code. As a comet's geocentri
 a thirty minute interval and phase angle by even smaller amounts, this error is deemed reasonable seeing as these 
 apparent magnitudes are only reported to the first decimal place by observers anyway.
 
-TODO:
--Add option to graph r vs mapp, r vs mhelio, and r vs mph.
--Remove necessity of having 'Schleicher_Composite_Phase_Function.txt' in working directory.
+**TODO:**
+-Change the way input arguments are done. That is, have user input them into a separate text document input.txt instead of in code.
 -Add ability to increment the JPLHorizon query in other intervals besides 1-60 minutes.
 -Add checks for all reference star catalogs that have special requirements as per ICQ's website.
 -Add statistical analysis techniques to account for observer differences.
