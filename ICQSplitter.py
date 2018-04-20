@@ -43,7 +43,7 @@ Available command line arguments (type these into terminal when compiling progra
 *	v1.0: Sorts problematic entries from data, performs heliocentric distance and phase angle corrections.
 *	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements.
 *	v2.0: Added statistical correction and plotting command line arguments!
-*   v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 509 - 515 and 578 - 584 and 650 - 653 to see the output files!.
+* 	v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 509 - 515 and 578 - 584 and 650 - 653 to see the output files!.
 
 
 """
