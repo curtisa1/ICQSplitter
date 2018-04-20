@@ -41,8 +41,9 @@ Available command line arguments (type these into terminal when compiling progra
 --plot
 
 *	v1.0: Sorts problematic entries from data, performs heliocentric distance and phase angle corrections.
-*	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements, fixed encoding issue reading in strange characters
+*	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements.
 *	v2.0: Added statistical correction and plotting command line arguments!
+*   v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 509 - 515 and 578 - 584 and 650 - 653 to see the output files!.
 
 
 """
@@ -52,11 +53,11 @@ Available command line arguments (type these into terminal when compiling progra
 ###############################
 
 input_file = 'GreeneWithBiver.txt'			#Name of your input file
-small_body_designation = '902012;'			#Name of your small body ex) 'ceres' or 'eris'
+small_body_designation = '902013;'			#Name of your small body ex) 'ceres' or 'eris'
 JPL_Time_Increment = 30 					#How much to increment JPL queries in minutes up to 60.
 ouput_file_kept_points = 'keepers.csv'		#Name of output file for points that meet all sorting criterion
 output_file_rejected_points = 'removed.csv'	#Name of output file for points that were removed from the data
-perihelion = '1997/04/01'					#Datetime of perihelion
+perihelion = '1997/04/01'					#Datetime of perihelion format YYYY/MM/DD
 CCD_Bool = 1								#If 0 then user only has CCD measurements, if 1 then user has visual magnitude measurements
 
 ###############################
@@ -391,6 +392,9 @@ def sortbyr(listPreorPost,r,mags, firstpass):
 				mag_sorted.append(mags[j])
 				break
 	return sorted_metalist, mag_sorted, r_sorted
+	
+def getcolumn(matrix, i):
+    return [row[i] for row in matrix]
 		
 #Performs the procedures to iterate a polynomial to convergence of tolerance 0.0001 in given data (see file 'Statistics_method_appendix.txt' in the GitHub repository)
 #Inputs: preorpost - String stating whether this is pre-perihelion or post-perihelion data (determined later in the code)
@@ -431,6 +435,8 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 			for j in range(0, len(listoflists[0])):
 				other_mag.append('')
 		#for each observer, check if it is pre-perihelion, if so take log(r and sort)
+		print(len(listoflists[0]))
+		print(len(corrected_mag))
 		for j in range (0, len(listoflists[0])):
 			tmprow = []
 			newdate4 = time.strptime(perihelion, "%Y/%m/%d")
@@ -451,7 +457,7 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 					other_mag.append('')
 					tmprow.append(other_mag[j])
 				if first_pass ==1:
-					r.append(math.log(float(helio_distances[j])))
+					r.append(math.log10(float(helio_distances[j])))
 				elif first_pass == 0:
 					r.append(float(helio_distances[j]))
 				stats.append(tmprow)
@@ -483,7 +489,7 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 					other_mag.append('')
 					tmprow.append(other_mag[j])
 				if first_pass == 1:
-					r.append(math.log(float(helio_distances[j])))
+					r.append(math.log10(float(helio_distances[j])))
 				elif first_pass == 0:
 					r.append(float(helio_distances[j]))
 				stats.append(tmprow)
@@ -499,6 +505,15 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 				
 		#Beginning iterating polynomial fits to convergance
 		for k in range (0, 21):
+		
+			#if first_pass == 1:
+			#	file_name = preorpost +'.'+str(k)+'.'+'out'
+			#	file_writer = csv.writer(open(file_name, 'w'), delimiter =',')
+			
+			#if first_pass != 1:
+			#	file_name = preorpost +'.'+str(k)+'.'+'With_Dropped_Obs'
+			#	file_writer = csv.writer(open(file_name, 'w'), delimiter =',')
+			
 			#for the first polynomial fit, all weights are set to 1.0 as we do not have standard deviations yet
 			if k == 0:
 				#initializing lists needed through routine
@@ -525,7 +540,7 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 				S_matrix = np.zeros((6,6))
 				for i in range(0, len(S)):
 					S_matrix[i,i] = S[i]
-				
+									
 				tmp = np.zeros((6,1))
 				tmp = np.matmul(np.matmul(np.matrix.transpose(Vh), linalg.inv(S_matrix)) , np.matmul( np.matrix.transpose(U), b))
 
@@ -535,6 +550,8 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 				for i in range(len(tmp)-1, -1, -1):
 					new_poly_fit.append(tmp[i])
 				p = np.poly1d(new_poly_fit)
+				
+				print(preorpost, k, new_poly_fit)
 
 				#calculating residuals between polynomial fit and data point
 				for i in range(0,len(mags_sorted_stat)):
@@ -556,7 +573,16 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 						if sorted_stats[h][23] == obs_list[o]:
 							mshift.append(mags_sorted_stat[h] + mean_resid_per_observer[o])
 							break
-					
+				print('here?')
+				
+				#if first_pass ==1:
+				#	for h in range(0, len(mags_sorted_stat)):
+				#		file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mags_sorted_stat[h]), str(0), str(0), str(1)])	
+
+				#if first_pass !=1:
+				#	for h in range(0, len(mags_sorted_stat)):
+				#		file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mags_sorted_stat[h]), str(0), str(0), str(1)])	
+							
 			#For each successive iteration we repeat the same things
 			#Except we use stdev_resid_per_observer accordingly in calculating A and b
 			if k!=0:
@@ -621,16 +647,25 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 				for h in range(0, len(mshift)):
 					for o in range (0, len(obs_list)):
 						if sorted_stats[h][23] == obs_list[o]:
+						#	if first_pass !=1:
+						#		file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mshift[h]), str(p(r_sorted_stat[h])), str(residuals[h]), str(stdev_resid_per_observer[o])])	
+						#	if first_pass ==1:
+						#		file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mshift[h]), str(p(r_sorted_stat[h])), str(residuals[h]), str(stdev_resid_per_observer[o])])	
 							mshift[h] = mshift[h] + mean_resid_per_observer[o]
 							break
 							
 				print(preorpost, k, new_poly_fit)
+				
+				#for h in range(0, len(mags_sorted_stat)):
+				#	file_writer.writerow([str(r_sorted_stat[h]), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mshift[h]), str(p(r_sorted_stat[h]), str(mshift[h]-p(r_sorted_stat[h]), str(1)])	
+
 						
 				#if each of the coefficients are within 0.0001 then we say the polynomial has converged and are done calculating mshift
 				if (abs(converge_test[0]) < tolerance) and (abs(converge_test[1])< tolerance) and (abs(converge_test[2])< tolerance) and (abs(converge_test[3])< tolerance) and (abs(converge_test[4])< tolerance) and (abs(converge_test[5])< tolerance):
 					print(preorpost,': The polynomail fit converged to within tolerance of ', tolerance, ' after ', k, ' iterations')
 					print('The final poly_fit is ', new_poly_fit)
 					break
+					
 					
 	if len(mshift) == 0 :
 		for i in range (0,30):
@@ -682,6 +717,10 @@ def main():
 	global to_report_delta
 	global to_report_phase
 	global dates_pds_format
+	global last_mag_calculated_sans_condemned_pre
+	global last_mag_calculated_sans_condemned_post
+	last_mag_calculated_sans_condemned_pre = []
+	last_mag_calculated_sans_condemned_post =[]
 	dates_pds_format = []
 	#Instantiates each element of metalist (i.e., each column in the input data).
 	metalist = []
@@ -1052,6 +1091,10 @@ def main():
 			#i.e., one observer failed the stationary test so we reconverge the polynomial fit / mshift values without the bias from their data present
 			if drop_observers ==1:
 				tmp = []
+				last_mag_calculated_sans_condemned_pre = []
+				for z in range(0,len(pre_last_mag_calculated)):
+					last_mag_calculated_sans_condemned_pre.append(pre_last_mag_calculated[z])
+				print(len(last_mag_calculated_sans_condemned_pre))
 				for h in range (len(pre_last_mag_calculated)-1, -1, -1):
 					if pre_meta[h][23] in pre_condemned_obs:
 						del pre_last_mag_calculated[h]
@@ -1075,7 +1118,7 @@ def main():
 				print(pre_condemned_obs)
 				print('DROPPING THESE OBSERVERS AND REPEATING THE ITERATIVE PROCESS')
 				print('###########################################################################################')
-				pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction,pre_other_mag, tmp, pre_resid_per_obs = stats_shifts('pre', tmp, pre_mshift, tmp_dates, tmp_deltas, tmp_phase, pre_r, pre_condemned_obs, tmp_other_mags, first_pass)
+				pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction,pre_other_mag, tmp, pre_resid_per_obs = stats_shifts('pre', tmp, last_mag_calculated_sans_condemned_pre, tmp_dates, tmp_deltas, tmp_phase, pre_r, pre_condemned_obs, tmp_other_mags, first_pass)
 			else:
 				terminate_iterations = 1
 		
@@ -1107,6 +1150,10 @@ def main():
 					drop_observers = 1
 					post_condemned_obs.append(post_obs_list[o])
 			if drop_observers ==1:
+				last_mag_calculated_sans_condemned_post = []
+				for z in range(0,len(post_last_mag_calculated)):
+					last_mag_calculated_sans_condemned_post.append(post_last_mag_calculated[z])
+				print(len(last_mag_calculated_sans_condemned_post))
 				for h in range (len(post_last_mag_calculated)-1, -1, -1):
 					if post_meta[h][23] in post_condemned_obs:
 						del post_last_mag_calculated[h]
@@ -1125,13 +1172,13 @@ def main():
 				del tmp[26]
 				del tmp[25]
 				del tmp[24]
-				number_t_post = number_t_post +1
+				last_mag_calculated_sans_condemned = []
 				print('#################################################################################')
 				print('POST: THE FOLLOWING OBSERVERS WERE REJECTED BY T-TEST: ')
 				print(post_condemned_obs)
 				print('DROPPING THESE OBSERVERS AND REPEATING THE ITERATIVE PROCESS FOR POSTPERIHELION')
 				print('#################################################################################')
-				post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction,post_other_mag, tmp, post_resid_per_obs = stats_shifts('post', tmp, post_mshift, tmp_dates, tmp_deltas, tmp_phase, post_r, post_condemned_obs, tmp_other_mags, first_pass)
+				post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction,post_other_mag, tmp, post_resid_per_obs = stats_shifts('post', tmp, last_mag_calculated_sans_condemned_post, tmp_dates, tmp_deltas, tmp_phase, post_r, post_condemned_obs, tmp_other_mags, first_pass)
 			else:
 				terminate_iterations = 1
 				
@@ -1153,7 +1200,7 @@ def main():
 			pre_mshift.insert(0, 'mshift with dropped observers')
 			file_writer = csv.writer(open('pre-stats.csv', 'w'), delimiter =',')
 			for m in range (1, len(pre_r)):
-				pre_r[m] = str((-1.0)*math.exp(float(pre_r[m])))
+				pre_r[m] = str((-1.0)*10**(float(pre_r[m])))
 			for k in range (0,len(pre_meta)):
 				file_writer.writerow([pre_meta[k][0],pre_meta[k][1],pre_meta[k][2],pre_meta[k][3],pre_meta[k][4],pre_meta[k][5],pre_meta[k][6],pre_meta[k][7],pre_meta[k][8],pre_meta[k][9],pre_meta[k][10],pre_meta[k][11],pre_meta[k][12],pre_meta[k][13],pre_meta[k][14],pre_meta[k][15],pre_meta[k][16],pre_meta[k][17],pre_meta[k][18],pre_meta[k][19],pre_meta[k][20],pre_meta[k][21],pre_meta[k][22],pre_meta[k][23], pre_meta[k][24],pre_r[k],pre_meta[k][28], pre_last_mag_calculated[k], pre_meta[k][25], pre_mshift[k], pre_meta[k][26], pre_meta[k][27], pre_last_mag_correction[k]])	
 		else:
@@ -1173,7 +1220,7 @@ def main():
 			post_mshift.insert(0, 'mshift with dropped observers')
 			file_writer = csv.writer(open('post-stats.csv', 'w'), delimiter =',')
 			for m in range (1, len(post_r)):
-				post_r[m] = str(math.exp(float(post_r[m])))
+				post_r[m] = str(10**(float(post_r[m])))
 			for k in range (0,len(post_meta)):
 				file_writer.writerow([post_meta[k][0],post_meta[k][1],post_meta[k][2],post_meta[k][3],post_meta[k][4],post_meta[k][5],post_meta[k][6],post_meta[k][7],post_meta[k][8],post_meta[k][9],post_meta[k][10],post_meta[k][11],post_meta[k][12],post_meta[k][13],post_meta[k][14],post_meta[k][15],post_meta[k][16],post_meta[k][17],post_meta[k][18],post_meta[k][19],post_meta[k][20],post_meta[k][21],post_meta[k][22],post_meta[k][23], post_meta[k][24],post_r[k],post_meta[k][28],post_last_mag_calculated[k], post_meta[k][25], post_mshift[k], post_meta[k][26], post_meta[k][27], post_last_mag_correction[k]])	
 		else:
