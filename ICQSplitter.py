@@ -43,7 +43,7 @@ Available command line arguments (type these into terminal when compiling progra
 *	v1.0: Sorts problematic entries from data, performs heliocentric distance and phase angle corrections.
 *	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements.
 *	v2.0: Added statistical correction and plotting command line arguments!
-* 	v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 509 - 515 and 578 - 584 and 650 - 653 to see the output files!.
+*   v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 509 - 515 and 578 - 584 and 650 - 653 to see the output files!.
 
 
 """
@@ -1377,14 +1377,14 @@ def main():
 			ax.set_yticks(np.arange(true_min_y -1, true_max_y+1,1))
 			ax.tick_params(which='major', length=10, width=1, bottom=True, top=True, left=True, right=True)
 			ax.tick_params(which='minor', length=5, width=1,labelbottom=True,bottom=True,top=True, left=True, right=True)
-			ax.tick_params(which='both', direction='in')
+			ax.tick_params(which='both', direction='in', labelsize='15')
 			ax.set_xlim(true_min_x-1, true_max_x+1)
 			ax.set_ylim(true_min_y-1, true_max_y+1)
 			ax.plot(mags_to_plot_meta[i+1], mags_to_plot_meta[i], '+', mew=1.1, ms=13, color='blue')
 			ax.invert_yaxis()
-			ax.set_title(titles[int(i/2)])
-			ax.set_xlabel('r (au)')
-			ax.set_ylabel(axis[int(i/2)])
+			ax.set_title(titles[int(i/2)], fontsize='20')
+			ax.set_xlabel('r (au)', fontsize='20')
+			ax.set_ylabel(axis[int(i/2)], fontsize='20')
 			dir_path = os.path.dirname(os.path.realpath(__file__))
 			title = dir_path+'\graph_'+str(int(i/2))
 			canvas = FigureCanvas(fig)
