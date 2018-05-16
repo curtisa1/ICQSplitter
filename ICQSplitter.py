@@ -53,7 +53,8 @@ Available command line arguments (type these into terminal when compiling progra
 ###############################
 
 input_file = 'GreeneWithBiver.txt'			#Name of your input file
-small_body_designation = '902013;'			#Name of your small body ex) 'ceres' or 'eris'
+target_nickname = 'HB'						#Nickname of target for output file organization (for example, HB = Hale-Bopp)
+small_body_designation = '902014;'			#Name of your small body ex) 'ceres' or 'eris'
 JPL_Time_Increment = 30 					#How much to increment JPL queries in minutes up to 60.
 ouput_file_kept_points = 'keepers.csv'		#Name of output file for points that meet all sorting criterion
 output_file_rejected_points = 'removed.csv'	#Name of output file for points that were removed from the data
@@ -1284,7 +1285,7 @@ def main():
 			mags_to_plot_meta.append(tmp_mags)
 			mags_to_plot_meta.append(tmp_r)
 			print('mhelio found, adding to plot')
-			titles.append('Heliocentric Corrected Visual Magnitude Vs. Heliocentric Distance')
+			titles.append('Heliocentric Corrected Magnitudes')
 			axis.append('mhelio')
 			count = count + 1
 		except:
@@ -1304,9 +1305,9 @@ def main():
 			count = count + 1
 			print('mph found, adding to plot')
 			if '--heliocentric' in sys.argv:
-				titles.append('Heliocentric and Phase Corrected Visual Magnitude Vs. Heliocentric Distance')
+				titles.append('Heliocentric and Phase Corrected Magnitudes')
 			else:
-				titles.append('Phase Corrected Visual Magnitude Vs. Heliocentric Distance')
+				titles.append('Phase Corrected Magnitudes')
 			axis.append('mph')
 		except:
 			print('mph not found, looking for other magnitudes to plot...')
@@ -1339,11 +1340,11 @@ def main():
 			print('Statistically corrected magnitudes found, adding to plot')
 			axis.append('mshift')
 			if ('--heliocentric' in sys.argv )and ('--phase' in sys.argv):
-				titles.append('Heliocentric and Phase Corrected Visual Magnitudes with Statistical Corrections Vs. Heliocentric Distance')
+				titles.append('Heliocentric, Phase, and Statistical Corrected Magnitudes')
 			elif '--heliocentric' in sys.argv:
-				titles.append('Heliocentric Corrected Visual Magnitude with Statistical Corrections Vs. Heliocentric Distance')
+				titles.append('Heliocentric and Statistically Corrected Magnitudes')
 			elif '--phase' in sys.argv:
-				titles.append('Phase Corrected Visual Magnitude with Statistical Corrections Vs. Heliocentric Distance')
+				titles.append('Phase and Statistically Corrected Magnitudes')
 		except:
 			print('No statistical corrections found, now plotting...')
 			
@@ -1386,7 +1387,8 @@ def main():
 			ax.set_xlabel('r (au)', fontsize='20')
 			ax.set_ylabel(axis[int(i/2)], fontsize='20')
 			dir_path = os.path.dirname(os.path.realpath(__file__))
-			title = dir_path+'\graph_'+str(int(i/2))
+			#title = dir_path+ "\" + target_nickname + "_graph_"+str(int(i/2))
+			title = dir_path + '\_' + target_nickname + '_graph_'+str(int(i/2))
 			canvas = FigureCanvas(fig)
 			canvas.print_figure(title, dpi=96, bbox_inches='tight')
 			ax.cla()
