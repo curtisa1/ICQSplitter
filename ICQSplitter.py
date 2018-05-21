@@ -32,7 +32,7 @@ mshift Vs. heliocentric distance). (note at least one of --heliocentric and --ph
 
 
 
-curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-04-04
+curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-05-21
 
 Available command line arguments (type these into terminal when compiling program):
 --heliocentric
@@ -44,6 +44,7 @@ Available command line arguments (type these into terminal when compiling progra
 *	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements.
 *	v2.0: Added statistical correction and plotting command line arguments!
 *   v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 509 - 515 and 578 - 584 and 650 - 653 to see the output files!.
+*   v2.2: Julian Dates not output along with YYYY-MM-DDTHH:MM:SS datetimes.
 
 
 """
@@ -54,7 +55,7 @@ Available command line arguments (type these into terminal when compiling progra
 
 input_file = 'GreeneWithBiver.txt'			#Name of your input file
 target_nickname = 'HB'						#Nickname of target for output file organization (for example, HB = Hale-Bopp)
-small_body_designation = '902014;'			#Name of your small body ex) 'ceres' or 'eris'
+small_body_designation = '902013;'			#Name of your small body ex) 'ceres' or 'eris'
 JPL_Time_Increment = 30 					#How much to increment JPL queries in minutes up to 60.
 ouput_file_kept_points = 'keepers.csv'		#Name of output file for points that meet all sorting criterion
 output_file_rejected_points = 'removed.csv'	#Name of output file for points that were removed from the data
@@ -299,6 +300,7 @@ def queryJPL():
 	global OBJDates
 	global OBJPhase
 	global OBJr
+	global OBJJulianDate
 	initial_date = str(metalist[3][0]) + "/" + str(metalist[4][0]) + "/" + str(math.floor(float(metalist[5][0])))
 	final_date = str(metalist[3][0]) + "/" + str(metalist[4][0]) + "/" + str(math.floor(float(metalist[5][0])))
 	place_in_list_initial = 0
@@ -327,6 +329,7 @@ def queryJPL():
 	OBJDates = small_body['datetime']
 	OBJPhase = small_body['alpha']
 	OBJr = small_body['r']
+	OBJJulianDate = small_body['datetime_jd']
 	tmp_dates =[]
 	hours = ""
 	minutes = ""
@@ -408,7 +411,7 @@ def getcolumn(matrix, i):
 #other_mag Last calculated magnitude (either mhelio or mphase depending on which combination of the two the user used)
 #first_pass - If 1 then this is the first time the data are having a polynomial fit to them (so that r-values do not have their natural log taken twice upon being read in). 
 #Primary Return is mshift - the magnitudes shifted by the mean of an observer's residuals between a global polynomial fit and their data (iterated to convergence)
-def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phases, helio_distances, condemned_list, other_mag, first_pass):
+def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phases, helio_distances, condemned_list, other_mag, first_pass, dateJulian):
 	mshift = []
 	obs_list = []
 	sorted_stats = []
@@ -461,6 +464,7 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 					r.append(math.log10(float(helio_distances[j])))
 				elif first_pass == 0:
 					r.append(float(helio_distances[j]))
+				tmprow.append(dateJulian[j])
 				stats.append(tmprow)
 			
 	#Reads in only pre-perihelion data from data in input function			
@@ -493,6 +497,7 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 					r.append(math.log10(float(helio_distances[j])))
 				elif first_pass == 0:
 					r.append(float(helio_distances[j]))
+				tmprow.append(dateJulian[j])
 				stats.append(tmprow)
 			
 	#stats is the "metalist" containing all of the information in the function's input arguments.
@@ -704,6 +709,7 @@ def add_headers_stats(inputlist, inputpreorpost,other):
 	inputlist[0].append('Delta (au)')
 	inputlist[0].append('Phase Angle')
 	inputlist[0].append(other)
+	inputlist[0].append('Julian Date')
 	
 
 def main():
@@ -717,6 +723,7 @@ def main():
 	global dates_pds_format
 	global to_report_delta
 	global to_report_phase
+	global to_report_Julian
 	global dates_pds_format
 	global last_mag_calculated_sans_condemned_pre
 	global last_mag_calculated_sans_condemned_post
@@ -855,6 +862,7 @@ def main():
 		to_report_delta = []
 		to_report_r = []
 		to_report_phase = []
+		to_report_Julian = []
 		#queryJPL will report an r, delta, and phase angle at every 30 minute increment in the ephemerides
 		#It will also take each date/time of an observation in the dataset and convert it to YYYY:MM:DD HH:MM:SS format.
 		#The next few lines will compare the date/time of each point in the observation and find the nearest 30 minute increment in the ephemerides
@@ -867,6 +875,7 @@ def main():
 					to_report_r.append(OBJr[j])
 					to_report_delta.append(OBJDelta[j])
 					to_report_phase.append(OBJPhase[j])
+					to_report_Julian.append(OBJJulianDate[j])
 					continue
 		for k in range(0,len(date_compare_to_JPL)):
 			dates_pds_format.append(date_compare_to_JPL[k].replace(" ","T"))
@@ -877,10 +886,11 @@ def main():
 		dates_pds_format.insert(0, 'Dates YYYY:MM:DDTHH:MM:SS')
 		to_report_delta.insert(0, 'Delta (au)')
 		to_report_phase.insert(0, 'Phase angle')
+		to_report_Julian.insert(0, 'Julian Date')
 		heliocentric_corrected_magnitudes.insert(0, 'magnitdues with only heliocentric correction (mhelio)')
 		file_writer = csv.writer(open(ouput_file_kept_points, 'w'), delimiter =',')
 		for k in range (0,len(metalist[2])):
-			file_writer.writerow([metalist[0][k],metalist[1][k],metalist[2][k],metalist[3][k],metalist[4][k],metalist[5][k],metalist[6][k],metalist[7][k],metalist[8][k],metalist[9][k],metalist[10][k],metalist[11][k],metalist[12][k],metalist[13][k],metalist[14][k],metalist[15][k],metalist[16][k],metalist[17][k],metalist[18][k],metalist[19][k],metalist[20][k],metalist[21][k],metalist[22][k],metalist[23][k], to_report_r[k], heliocentric_corrected_magnitudes[k]])
+			file_writer.writerow([metalist[0][k],metalist[1][k],metalist[2][k],metalist[3][k],metalist[4][k],metalist[5][k],metalist[6][k],metalist[7][k],metalist[8][k],metalist[9][k],metalist[10][k],metalist[11][k],metalist[12][k],metalist[13][k],metalist[14][k],metalist[15][k],metalist[16][k],metalist[17][k],metalist[18][k],metalist[19][k],metalist[20][k],metalist[21][k],metalist[22][k],metalist[23][k], to_report_r[k], heliocentric_corrected_magnitudes[k], dates_pds_format[k], to_report_delta[k], to_report_phase[k], to_report_Julian[k]])
 
 	#Optional command line argument --phase to perform just phase corrections to 'kept' data
 	if '--phase' in sys.argv and '--heliocentric' not in sys.argv:
@@ -890,6 +900,7 @@ def main():
 		to_report_delta = []
 		to_report_r = []
 		to_report_phase = []
+		to_report_Julian = []
 		#queryJPL will report an r, delta, and phase angle at every 30 minute increment in the ephemerides
 		#It will also take each date/time of an observation in the dataset and convert it to YYYY:MM:DD HH:MM:SS format.
 		#The next few lines will compare the date/time of each point in the observation and find the nearest 30 minute increment in the ephemerides
@@ -907,6 +918,7 @@ def main():
 					to_report_r.append(OBJr[j])
 					to_report_delta.append(OBJDelta[j])
 					to_report_phase.append(OBJPhase[j])
+					to_report_Julian.append(OBJJulianDate[j])
 					for l in range (0, len(phase_angles)):
 						if (round(float(OBJPhase[j])) == float(phase_angles[l])):
 							phase_corrected_magnitudes.append(str(float(metalist[8][i]) + 2.5 * float(math.log10(deg_0_normalized[l]))))
@@ -921,10 +933,11 @@ def main():
 		dates_pds_format.insert(0, 'Dates YYYY:MM:DDTHH:MM:SS')
 		to_report_delta.insert(0, 'Delta (au)')
 		to_report_phase.insert(0, 'Phase angle')
+		to_report_Julian.insert(0, 'Julian Date')
 		phase_corrected_magnitudes.insert(0, 'magnitudes with only phase correction (mph*)')
 		file_writer = csv.writer(open(ouput_file_kept_points, 'w'), delimiter =',')
 		for k in range (0,len(metalist[2])):
-			file_writer.writerow([metalist[0][k],metalist[1][k],metalist[2][k],metalist[3][k],metalist[4][k],metalist[5][k],metalist[6][k],metalist[7][k],metalist[8][k],metalist[9][k],metalist[10][k],metalist[11][k],metalist[12][k],metalist[13][k],metalist[14][k],metalist[15][k],metalist[16][k],metalist[17][k],metalist[18][k],metalist[19][k],metalist[20][k],metalist[21][k],metalist[22][k],metalist[23][k], to_report_r[k], phase_corrected_magnitudes[k]])
+			file_writer.writerow([metalist[0][k],metalist[1][k],metalist[2][k],metalist[3][k],metalist[4][k],metalist[5][k],metalist[6][k],metalist[7][k],metalist[8][k],metalist[9][k],metalist[10][k],metalist[11][k],metalist[12][k],metalist[13][k],metalist[14][k],metalist[15][k],metalist[16][k],metalist[17][k],metalist[18][k],metalist[19][k],metalist[20][k],metalist[21][k],metalist[22][k],metalist[23][k], to_report_r[k], phase_corrected_magnitudes[k], dates_pds_format[k], to_report_delta[k], to_report_phase[k], to_report_Julian[k]])
 	
 	#Performs a heliocentric correction to the raw data and then a phase correction to the heliocentric corrected data
 	#See the above two blocks to understand how the heliocentric and phase corrections work
@@ -936,6 +949,7 @@ def main():
 		to_report_r = []
 		to_report_delta = []
 		to_report_phase = []
+		to_report_Julian = []
 		with open('Schleicher_Composite_Phase_Function.txt') as f:
 			lines1 = f.readlines()
 			phase_angles = [line.split()[0] for line in lines1]
@@ -946,6 +960,7 @@ def main():
 					to_report_r.append(OBJr[j])
 					to_report_delta.append(OBJDelta[j])
 					to_report_phase.append(OBJPhase[j])
+					to_report_Julian.append(OBJJulianDate[j])
 					heliocentric_corrected_magnitudes.append(str(float(metalist[8][i]) - 5. * float(math.log10(OBJDelta[j]))))
 					for l in range (0, len(phase_angles)):
 						if (round(float(OBJPhase[j])) == float(phase_angles[l])):
@@ -961,9 +976,10 @@ def main():
 		dates_pds_format.insert(0, 'Dates YYYY:MM:DDTHH:MM:SS')
 		to_report_delta.insert(0, 'Delta (au)')
 		to_report_phase.insert(0, 'Phase angle')
+		to_report_Julian.insert(0, 'Julian Date')
 		file_writer = csv.writer(open(ouput_file_kept_points, 'w'), delimiter =',')
 		for k in range (0,len(metalist[2])):
-			file_writer.writerow([metalist[0][k],metalist[1][k],metalist[2][k],metalist[3][k],metalist[4][k],metalist[5][k],metalist[6][k],metalist[7][k],metalist[8][k],metalist[9][k],metalist[10][k],metalist[11][k],metalist[12][k],metalist[13][k],metalist[14][k],metalist[15][k],metalist[16][k],metalist[17][k],metalist[18][k],metalist[19][k],metalist[20][k],metalist[21][k],metalist[22][k],metalist[23][k], to_report_r[k], heliocentric_corrected_magnitudes[k], phase_corrected_magnitudes[k], dates_pds_format[k], to_report_delta[k], to_report_phase[k]])
+			file_writer.writerow([metalist[0][k],metalist[1][k],metalist[2][k],metalist[3][k],metalist[4][k],metalist[5][k],metalist[6][k],metalist[7][k],metalist[8][k],metalist[9][k],metalist[10][k],metalist[11][k],metalist[12][k],metalist[13][k],metalist[14][k],metalist[15][k],metalist[16][k],metalist[17][k],metalist[18][k],metalist[19][k],metalist[20][k],metalist[21][k],metalist[22][k],metalist[23][k], to_report_r[k], heliocentric_corrected_magnitudes[k], phase_corrected_magnitudes[k], dates_pds_format[k], to_report_delta[k], to_report_phase[k], to_report_Julian[k]])
 		
 	#Performs all statistical corrections outlined in 'Statistics_method_appendix.txt' in GitHub repository
 	#All TRY-EXCEPT blocks are case scenarios depending on whether the user calculated mph, mehlio, or both.
@@ -1017,6 +1033,7 @@ def main():
 		del to_report_r[0]
 		del to_report_delta[0]
 		del to_report_phase[0]
+		del to_report_Julian[0]
 		del dates_pds_format[0]
 		deletearow(0)
 		
@@ -1035,7 +1052,7 @@ def main():
 		pre_count_per_obs = []
 		pre_other_mag = []
 		pre_last_mag_calculated = []
-		pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction, pre_other_mag, pre_last_mag_calculated, pre_resid_per_obs= stats_shifts('pre', metalist, last_mag_calculated, dates_pds_format, OBJDelta, OBJPhase, to_report_r,pre_condemned_obs, other_mag, first_pass)
+		pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction, pre_other_mag, pre_last_mag_calculated, pre_resid_per_obs= stats_shifts('pre', metalist, last_mag_calculated, dates_pds_format, OBJDelta, OBJPhase, to_report_r,pre_condemned_obs, other_mag, first_pass, OBJJulianDate)
 				
 		print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 		
@@ -1052,7 +1069,7 @@ def main():
 		post_count_per_obs = []
 		post_other_mag = []
 		post_last_mag_calculated =[]
-		post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction, post_other_mag, post_last_mag_calculated, post_resid_per_obs= stats_shifts('post',  metalist, last_mag_calculated, dates_pds_format, OBJDelta, OBJPhase, to_report_r,post_condemned_obs, other_mag,first_pass)	
+		post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction, post_other_mag, post_last_mag_calculated, post_resid_per_obs= stats_shifts('post',  metalist, last_mag_calculated, dates_pds_format, OBJDelta, OBJPhase, to_report_r,post_condemned_obs, other_mag,first_pass, OBJJulianDate)	
 		
 		#sets this to 0 so that if we need to run stats_shifts again then we wont accidentally log the r-values again
 		first_pass = 0
@@ -1108,6 +1125,8 @@ def main():
 				tmp_deltas = tmp[26]
 				tmp_phase = tmp[27]
 				tmp_other_mags = tmp[28]
+				tmp_julian = tmp[29]
+				del tmp[29]
 				del tmp[28]
 				del tmp[27]
 				del tmp[26]
@@ -1119,7 +1138,7 @@ def main():
 				print(pre_condemned_obs)
 				print('DROPPING THESE OBSERVERS AND REPEATING THE ITERATIVE PROCESS')
 				print('###########################################################################################')
-				pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction,pre_other_mag, tmp, pre_resid_per_obs = stats_shifts('pre', tmp, last_mag_calculated_sans_condemned_pre, tmp_dates, tmp_deltas, tmp_phase, pre_r, pre_condemned_obs, tmp_other_mags, first_pass)
+				pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction,pre_other_mag, tmp, pre_resid_per_obs = stats_shifts('pre', tmp, last_mag_calculated_sans_condemned_pre, tmp_dates, tmp_deltas, tmp_phase, pre_r, pre_condemned_obs, tmp_other_mags, first_pass, tmp_julian)
 			else:
 				terminate_iterations = 1
 		
@@ -1168,6 +1187,8 @@ def main():
 				tmp_deltas = tmp[26]
 				tmp_phase = tmp[27]
 				tmp_other_mags = tmp[28]
+				tmp_julian = tmp[29]
+				del tmp[29]
 				del tmp[28]
 				del tmp[27]
 				del tmp[26]
@@ -1179,7 +1200,7 @@ def main():
 				print(post_condemned_obs)
 				print('DROPPING THESE OBSERVERS AND REPEATING THE ITERATIVE PROCESS FOR POSTPERIHELION')
 				print('#################################################################################')
-				post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction,post_other_mag, tmp, post_resid_per_obs = stats_shifts('post', tmp, last_mag_calculated_sans_condemned_post, tmp_dates, tmp_deltas, tmp_phase, post_r, post_condemned_obs, tmp_other_mags, first_pass)
+				post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction,post_other_mag, tmp, post_resid_per_obs = stats_shifts('post', tmp, last_mag_calculated_sans_condemned_post, tmp_dates, tmp_deltas, tmp_phase, post_r, post_condemned_obs, tmp_other_mags, first_pass, tmp_julian)
 			else:
 				terminate_iterations = 1
 				
@@ -1203,7 +1224,7 @@ def main():
 			for m in range (1, len(pre_r)):
 				pre_r[m] = str((-1.0)*10**(float(pre_r[m])))
 			for k in range (0,len(pre_meta)):
-				file_writer.writerow([pre_meta[k][0],pre_meta[k][1],pre_meta[k][2],pre_meta[k][3],pre_meta[k][4],pre_meta[k][5],pre_meta[k][6],pre_meta[k][7],pre_meta[k][8],pre_meta[k][9],pre_meta[k][10],pre_meta[k][11],pre_meta[k][12],pre_meta[k][13],pre_meta[k][14],pre_meta[k][15],pre_meta[k][16],pre_meta[k][17],pre_meta[k][18],pre_meta[k][19],pre_meta[k][20],pre_meta[k][21],pre_meta[k][22],pre_meta[k][23], pre_meta[k][24],pre_r[k],pre_meta[k][28], pre_last_mag_calculated[k], pre_meta[k][25], pre_mshift[k], pre_meta[k][26], pre_meta[k][27], pre_last_mag_correction[k]])	
+				file_writer.writerow([pre_meta[k][0],pre_meta[k][1],pre_meta[k][2],pre_meta[k][3],pre_meta[k][4],pre_meta[k][5],pre_meta[k][6],pre_meta[k][7],pre_meta[k][8],pre_meta[k][9],pre_meta[k][10],pre_meta[k][11],pre_meta[k][12],pre_meta[k][13],pre_meta[k][14],pre_meta[k][15],pre_meta[k][16],pre_meta[k][17],pre_meta[k][18],pre_meta[k][19],pre_meta[k][20],pre_meta[k][21],pre_meta[k][22],pre_meta[k][23], pre_meta[k][24],pre_r[k],pre_meta[k][28], pre_last_mag_calculated[k], pre_meta[k][25], pre_mshift[k], pre_meta[k][26], pre_meta[k][27], pre_last_mag_correction[k], pre_meta[k][29]])	
 		else:
 			print('No preperihelion data to perform statistics on')
 			print('##########################################################################################')
@@ -1223,7 +1244,7 @@ def main():
 			for m in range (1, len(post_r)):
 				post_r[m] = str(10**(float(post_r[m])))
 			for k in range (0,len(post_meta)):
-				file_writer.writerow([post_meta[k][0],post_meta[k][1],post_meta[k][2],post_meta[k][3],post_meta[k][4],post_meta[k][5],post_meta[k][6],post_meta[k][7],post_meta[k][8],post_meta[k][9],post_meta[k][10],post_meta[k][11],post_meta[k][12],post_meta[k][13],post_meta[k][14],post_meta[k][15],post_meta[k][16],post_meta[k][17],post_meta[k][18],post_meta[k][19],post_meta[k][20],post_meta[k][21],post_meta[k][22],post_meta[k][23], post_meta[k][24],post_r[k],post_meta[k][28],post_last_mag_calculated[k], post_meta[k][25], post_mshift[k], post_meta[k][26], post_meta[k][27], post_last_mag_correction[k]])	
+				file_writer.writerow([post_meta[k][0],post_meta[k][1],post_meta[k][2],post_meta[k][3],post_meta[k][4],post_meta[k][5],post_meta[k][6],post_meta[k][7],post_meta[k][8],post_meta[k][9],post_meta[k][10],post_meta[k][11],post_meta[k][12],post_meta[k][13],post_meta[k][14],post_meta[k][15],post_meta[k][16],post_meta[k][17],post_meta[k][18],post_meta[k][19],post_meta[k][20],post_meta[k][21],post_meta[k][22],post_meta[k][23], post_meta[k][24],post_r[k],post_meta[k][28],post_last_mag_calculated[k], post_meta[k][25], post_mshift[k], post_meta[k][26], post_meta[k][27], post_last_mag_correction[k], post_meta[k][29]])	
 		else:
 			print('No postperihelion data to perform statistics on')
 			print('###########################################################################################')
@@ -1268,7 +1289,7 @@ def main():
 			mags_to_plot_meta.append(tmp_r)
 			count = count +1
 			print('mraw found, adding to plot')
-			titles.append('Reported Visual Magnitude Vs. Heliocentric Distance')
+			titles.append('Reported Visual Magnitude Vs. Geocentric Distance')
 			axis.append('mraw')
 		except:
 			print('Please perform --heliocentric, --phase, or both before plotting')
@@ -1285,7 +1306,7 @@ def main():
 			mags_to_plot_meta.append(tmp_mags)
 			mags_to_plot_meta.append(tmp_r)
 			print('mhelio found, adding to plot')
-			titles.append('Heliocentric Corrected Magnitudes')
+			titles.append('Geocentric Corrected Magnitudes')
 			axis.append('mhelio')
 			count = count + 1
 		except:
@@ -1305,7 +1326,7 @@ def main():
 			count = count + 1
 			print('mph found, adding to plot')
 			if '--heliocentric' in sys.argv:
-				titles.append('Heliocentric and Phase Corrected Magnitudes')
+				titles.append('Geocentric and Phase Corrected Magnitudes')
 			else:
 				titles.append('Phase Corrected Magnitudes')
 			axis.append('mph')
@@ -1340,9 +1361,9 @@ def main():
 			print('Statistically corrected magnitudes found, adding to plot')
 			axis.append('mshift')
 			if ('--heliocentric' in sys.argv )and ('--phase' in sys.argv):
-				titles.append('Heliocentric, Phase, and Statistical Corrected Magnitudes')
+				titles.append('Geocentric, Phase, and Statistically Corrected Magnitudes')
 			elif '--heliocentric' in sys.argv:
-				titles.append('Heliocentric and Statistically Corrected Magnitudes')
+				titles.append('Geocentric and Statistically Corrected Magnitudes')
 			elif '--phase' in sys.argv:
 				titles.append('Phase and Statistically Corrected Magnitudes')
 		except:
@@ -1362,7 +1383,7 @@ def main():
 		true_min_x = math.floor(min(to_check_min_max_x))
 		true_max_y = math.ceil(max(to_check_min_max_y))
 		true_min_y = math.floor(min(to_check_min_max_y))
-		
+				
 		#print(len(mags_to_plot_meta))
 		for i in range(0,len(mags_to_plot_meta)):
 			if i%2 == 1:
