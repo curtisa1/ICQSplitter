@@ -32,7 +32,7 @@ mshift Vs. heliocentric distance). (note at least one of --heliocentric and --ph
 
 
 
-curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-05-21
+curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-06-01
 
 Available command line arguments (type these into terminal when compiling program):
 --heliocentric
@@ -43,8 +43,9 @@ Available command line arguments (type these into terminal when compiling progra
 *	v1.0: Sorts problematic entries from data, performs heliocentric distance and phase angle corrections.
 *	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements.
 *	v2.0: Added statistical correction and plotting command line arguments!
-*   v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 509 - 515 and 578 - 584 and 650 - 653 to see the output files!.
+*   v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 570 - 576 and 639 - 645 and 711 - 714 to see the output files!.
 *   v2.2: Julian Dates not output along with YYYY-MM-DDTHH:MM:SS datetimes.
+*   v3.0: Fixed issue where --stats was reading in observers with a statistically insignifican number of points (aka 20), changed design of figures
 
 
 """
@@ -53,13 +54,13 @@ Available command line arguments (type these into terminal when compiling progra
 ####### Input Arguments #######
 ###############################
 
-input_file = 'GreeneWithBiver.txt'			#Name of your input file
-target_nickname = 'HB'						#Nickname of target for output file organization (for example, HB = Hale-Bopp)
-small_body_designation = '902013;'			#Name of your small body ex) 'ceres' or 'eris'
+input_file = 'lightcurve_20180531-235334.dat'			#Name of your input file
+target_nickname = 'hyakutake'						#Nickname of target for output file organization (for example, HB = Hale-Bopp)
+small_body_designation = 'C/1996 B2'			#Name of your small body ex) 'ceres' or 'eris'
 JPL_Time_Increment = 30 					#How much to increment JPL queries in minutes up to 60.
 ouput_file_kept_points = 'keepers.csv'		#Name of output file for points that meet all sorting criterion
 output_file_rejected_points = 'removed.csv'	#Name of output file for points that were removed from the data
-perihelion = '1997/04/01'					#Datetime of perihelion format YYYY/MM/DD
+perihelion = '1996/05/01'					#Datetime of perihelion format YYYY/MM/DD
 CCD_Bool = 1								#If 0 then user only has CCD measurements, if 1 then user has visual magnitude measurements
 
 ###############################
@@ -84,6 +85,12 @@ from scipy import linalg
 from matplotlib.ticker import MultipleLocator
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
+from matplotlib.gridspec import GridSpec
+import matplotlib.gridspec as gridspec
+from matplotlib.ticker import ScalarFormatter
+from datetime import datetime, timedelta
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning) 
 
 #Deletes the i-th observation in the dataset after it failed a sorting criterion
 #Defined later, metalist is a list whose elements are each column (as lists) of the input file
@@ -301,19 +308,47 @@ def queryJPL():
 	global OBJPhase
 	global OBJr
 	global OBJJulianDate
+	global r_at_perihelion
 	initial_date = str(metalist[3][0]) + "/" + str(metalist[4][0]) + "/" + str(math.floor(float(metalist[5][0])))
 	final_date = str(metalist[3][0]) + "/" + str(metalist[4][0]) + "/" + str(math.floor(float(metalist[5][0])))
 	place_in_list_initial = 0
 	place_in_list_final = 0
+	peri_date = datetime.strptime(perihelion,"%Y/%m/%d")
+	plus_one_day_peri = peri_date + timedelta(days=1)
+	peri_date = str(peri_date.date()).replace("-","/")
+	plus_one_day_peri = str(plus_one_day_peri.date()).replace("-","/")
+
 	for j in range (0, len(metalist[3])):
 		check_date = str(metalist[3][j]) + "/" + str(metalist[4][j]) + "/" + str(math.floor(float(metalist[5][j])))
 		newdate1 = time.strptime(initial_date, "%Y/%m/%d")
 		newdate2 = time.strptime(check_date, "%Y/%m/%d")
 		newdate3 = time.strptime(final_date, "%Y/%m/%d")
+		peridate = time.strptime(perihelion, "%Y/%m/%d")
 		if newdate2 < newdate1:
 			initial_date = check_date
 		elif newdate2 > newdate3:
 			final_date = check_date
+		if j == 0:
+			last_newdate2 = newdate2
+			continue
+		if (peridate >= newdate2) and (last_newdate2 > peridate):
+			if newdate2 == peridate:
+				small_body_for_peri_r = callhorizons.query(small_body_designation)
+				small_body_for_peri_r.set_epochrange(peri_date,plus_one_day_peri,str(JPL_Time_Increment) + 'm')
+				small_body_for_peri_r.get_ephemerides(500)
+				tmp_r_at_peri_date = small_body_for_peri_r['r']
+			else:
+				this_date = datetime.strptime(check_date,"%Y/%m/%d")
+				plus_one_day_this = this_date + timedelta(days=1)
+				this_date = str(this_date.date()).replace("-","/")
+				plus_one_day_this = str(plus_one_day_this.date()).replace("-","/")
+				small_body_for_peri_r = callhorizons.query(small_body_designation)
+				small_body_for_peri_r.set_epochrange(this_date,plus_one_day_this,str(JPL_Time_Increment) + 'm')
+				small_body_for_peri_r.get_ephemerides(500)
+				tmp_r_at_peri_date = small_body_for_peri_r['r']
+		last_newdate2 = newdate2
+
+	r_at_perihelion = float("%.1f" % tmp_r_at_peri_date[math.floor(len(tmp_r_at_peri_date)/2)])
 	initial_date = initial_date.replace("/","-") + " 00:00"
 	final_date = final_date.replace("/","-") + " 23:00"
 	#Queries JPL HORIZONS
@@ -430,7 +465,7 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 	sum_resid_per_observer = []
 	mean_resid_per_observer = []
 	tolerance = 0.0001
-	
+		
 	#Checks data are in pre-perihelion range, sorts the data by r (large to small), and rearranges all metadata accordingly
 	if preorpost == 'pre':
 		#Next if loop necessary in case user only supplied post-perihelion data. Read: if no data are found for pre-perihelion then
@@ -439,15 +474,13 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 			for j in range(0, len(listoflists[0])):
 				other_mag.append('')
 		#for each observer, check if it is pre-perihelion, if so take log(r and sort)
-		print(len(listoflists[0]))
-		print(len(corrected_mag))
+							
 		for j in range (0, len(listoflists[0])):
 			tmprow = []
 			newdate4 = time.strptime(perihelion, "%Y/%m/%d")
 			datetocheck = str(listoflists[3][j]) + "/" + str(listoflists[4][j]) + "/" + str(math.floor(float(listoflists[5][j])))
 			newdate5 = time.strptime(datetocheck, "%Y/%m/%d")
-
-			if (newdate5 <= newdate4) and (listoflists[23][j] not in condemned_list):
+			if (newdate5 <= newdate4) and (listoflists[23][j].strip() not in condemned_list):
 				for k in range (0,len(listoflists)):
 					tmprow.append(listoflists[k][j])
 				tmprow.append(dateThours[j])
@@ -467,7 +500,7 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 				tmprow.append(dateJulian[j])
 				stats.append(tmprow)
 			
-	#Reads in only pre-perihelion data from data in input function			
+	#Reads in only post-perihelion data from data in input function			
 	if preorpost =='post':
 		#Next if loop necessary in case user only supplied pre-perihelion data. Read: if no data are found for post-perihelion then
 		#fill it with blank spaces that the program will know to skip later.
@@ -475,12 +508,13 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 			for j in range(0, len(listoflists[0])):
 				other_mag.append('')
 		#for each observer, check if it is pre-perihelion, if so take log(r and sort)
+				
 		for j in range (0, len(listoflists[0])):	
 			tmprow = []
 			newdate4 = time.strptime(perihelion, "%Y/%m/%d")
 			datetocheck = str(listoflists[3][j]) + "/" + str(listoflists[4][j]) + "/" + str(math.floor(float(listoflists[5][j])))
 			newdate5 = time.strptime(datetocheck, "%Y/%m/%d")
-			if (newdate5 > newdate4) and (listoflists[23][j] not in condemned_list):
+			if (newdate5 > newdate4) and (listoflists[23][j].strip() not in condemned_list):
 				for k in range (0,len(listoflists)):
 					tmprow.append(listoflists[k][j])
 				tmprow.append(dateThours[j])
@@ -499,6 +533,8 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 					r.append(float(helio_distances[j]))
 				tmprow.append(dateJulian[j])
 				stats.append(tmprow)
+
+			#print(stats)
 			
 	#stats is the "metalist" containing all of the information in the function's input arguments.
 	if len(stats) != 0:
@@ -509,16 +545,18 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 			if sorted_stats[i][23].strip() not in obs_list:
 				obs_list.append(sorted_stats[i][23].strip())
 				
+		#print(preorpost, obs_list)
+								
 		#Beginning iterating polynomial fits to convergance
 		for k in range (0, 21):
 		
-			#if first_pass == 1:
-			#	file_name = preorpost +'.'+str(k)+'.'+'out'
-			#	file_writer = csv.writer(open(file_name, 'w'), delimiter =',')
+			# if first_pass == 1:
+				# file_name = preorpost +'.'+str(k)+'.'+'out'
+				# file_writer = csv.writer(open(file_name, 'w'), delimiter =',')
 			
-			#if first_pass != 1:
-			#	file_name = preorpost +'.'+str(k)+'.'+'With_Dropped_Obs'
-			#	file_writer = csv.writer(open(file_name, 'w'), delimiter =',')
+			# if first_pass != 1:
+				# file_name = preorpost +'.'+str(k)+'.'+'With_Dropped_Obs'
+				# file_writer = csv.writer(open(file_name, 'w'), delimiter =',')
 			
 			#for the first polynomial fit, all weights are set to 1.0 as we do not have standard deviations yet
 			if k == 0:
@@ -557,7 +595,7 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 					new_poly_fit.append(tmp[i])
 				p = np.poly1d(new_poly_fit)
 				
-				print(preorpost, k, new_poly_fit)
+				#print(preorpost, k, new_poly_fit)
 
 				#calculating residuals between polynomial fit and data point
 				for i in range(0,len(mags_sorted_stat)):
@@ -579,15 +617,14 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 						if sorted_stats[h][23] == obs_list[o]:
 							mshift.append(mags_sorted_stat[h] + mean_resid_per_observer[o])
 							break
-				print('here?')
 				
-				#if first_pass ==1:
-				#	for h in range(0, len(mags_sorted_stat)):
-				#		file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mags_sorted_stat[h]), str(0), str(0), str(1)])	
+				# if first_pass ==1:
+					# for h in range(0, len(mags_sorted_stat)):
+						# file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mags_sorted_stat[h]), str(0), str(0), str(1)])	
 
-				#if first_pass !=1:
-				#	for h in range(0, len(mags_sorted_stat)):
-				#		file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mags_sorted_stat[h]), str(0), str(0), str(1)])	
+				# if first_pass !=1:
+					# for h in range(0, len(mags_sorted_stat)):
+						# file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mags_sorted_stat[h]), str(0), str(0), str(1)])	
 							
 			#For each successive iteration we repeat the same things
 			#Except we use stdev_resid_per_observer accordingly in calculating A and b
@@ -653,14 +690,14 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 				for h in range(0, len(mshift)):
 					for o in range (0, len(obs_list)):
 						if sorted_stats[h][23] == obs_list[o]:
-						#	if first_pass !=1:
-						#		file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mshift[h]), str(p(r_sorted_stat[h])), str(residuals[h]), str(stdev_resid_per_observer[o])])	
-						#	if first_pass ==1:
-						#		file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mshift[h]), str(p(r_sorted_stat[h])), str(residuals[h]), str(stdev_resid_per_observer[o])])	
+							# if first_pass !=1:
+								# file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mshift[h]), str(p(r_sorted_stat[h])), str(residuals[h]), str(stdev_resid_per_observer[o])])	
+							# if first_pass ==1:
+								# file_writer.writerow([str(10**(r_sorted_stat[h])), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mshift[h]), str(p(r_sorted_stat[h])), str(residuals[h]), str(stdev_resid_per_observer[o])])	
 							mshift[h] = mshift[h] + mean_resid_per_observer[o]
 							break
 							
-				print(preorpost, k, new_poly_fit)
+				#print(preorpost, k, new_poly_fit)
 				
 				#for h in range(0, len(mags_sorted_stat)):
 				#	file_writer.writerow([str(r_sorted_stat[h]), str(sorted_stats[h][23]), str(mags_sorted_stat[h]),str(mshift[h]), str(p(r_sorted_stat[h]), str(mshift[h]-p(r_sorted_stat[h]), str(1)])	
@@ -668,15 +705,15 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 						
 				#if each of the coefficients are within 0.0001 then we say the polynomial has converged and are done calculating mshift
 				if (abs(converge_test[0]) < tolerance) and (abs(converge_test[1])< tolerance) and (abs(converge_test[2])< tolerance) and (abs(converge_test[3])< tolerance) and (abs(converge_test[4])< tolerance) and (abs(converge_test[5])< tolerance):
-					print(preorpost,': The polynomail fit converged to within tolerance of ', tolerance, ' after ', k, ' iterations')
-					print('The final poly_fit is ', new_poly_fit)
+					#print(preorpost,': The polynomail fit converged to within tolerance of ', tolerance, ' after ', k, ' iterations')
+					#print('The final poly_fit is ', new_poly_fit)
 					break
 					
 					
 	if len(mshift) == 0 :
 		for i in range (0,30):
 			sorted_stats.append(0)
-	return mshift, obs_list, sorted_stats, r_sorted_stat, new_poly_fit, original_poly_fit, stdev_resid_per_observer, mean_resid_per_observer, count_per_observer, residuals,  sorted_stats[28], mags_sorted_stat, resid_per_obs
+	return mshift, obs_list, sorted_stats, r_sorted_stat, new_poly_fit, original_poly_fit, stdev_resid_per_observer, mean_resid_per_observer, count_per_observer, residuals,  sorted_stats[28], mags_sorted_stat, resid_per_obs, condemned_list
 
 #Assigns headers for output stats files
 def add_headers_stats(inputlist, inputpreorpost,other):
@@ -879,7 +916,7 @@ def main():
 					continue
 		for k in range(0,len(date_compare_to_JPL)):
 			dates_pds_format.append(date_compare_to_JPL[k].replace(" ","T"))
-
+			
 		#writes out final heliocentric corrected data.
 		add_headers(metalist)
 		to_report_r.insert(0, 'Heliocentric Distance (au)')
@@ -887,7 +924,7 @@ def main():
 		to_report_delta.insert(0, 'Delta (au)')
 		to_report_phase.insert(0, 'Phase angle')
 		to_report_Julian.insert(0, 'Julian Date')
-		heliocentric_corrected_magnitudes.insert(0, 'magnitdues with only heliocentric correction (mhelio)')
+		heliocentric_corrected_magnitudes.insert(0, 'magnitdues with only geocentric correction (mhelio)')
 		file_writer = csv.writer(open(ouput_file_kept_points, 'w'), delimiter =',')
 		for k in range (0,len(metalist[2])):
 			file_writer.writerow([metalist[0][k],metalist[1][k],metalist[2][k],metalist[3][k],metalist[4][k],metalist[5][k],metalist[6][k],metalist[7][k],metalist[8][k],metalist[9][k],metalist[10][k],metalist[11][k],metalist[12][k],metalist[13][k],metalist[14][k],metalist[15][k],metalist[16][k],metalist[17][k],metalist[18][k],metalist[19][k],metalist[20][k],metalist[21][k],metalist[22][k],metalist[23][k], to_report_r[k], heliocentric_corrected_magnitudes[k], dates_pds_format[k], to_report_delta[k], to_report_phase[k], to_report_Julian[k]])
@@ -1037,8 +1074,47 @@ def main():
 		del dates_pds_format[0]
 		deletearow(0)
 		
-		print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')	
+		#print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')	
 		
+		
+		peridate = time.strptime(perihelion, "%Y/%m/%d")
+		tmp_obs_pre = []
+		count_pre = []
+		tmp_obs_post = []
+		count_post = []
+		
+		for j in range(0,len(metalist[0])):
+			check_date = str(metalist[3][j]) + "/" + str(metalist[4][j]) + "/" + str(math.floor(float(metalist[5][j])))
+			newdate2 = time.strptime(check_date, "%Y/%m/%d")
+			if newdate2 < peridate:
+				if metalist[23][j] not in tmp_obs_pre:
+					tmp_obs_pre.append(metalist[23][j].strip())
+					count_pre.append(0)
+			if newdate2 >= peridate:
+				if metalist[23][j] not in tmp_obs_post:
+					tmp_obs_post.append(metalist[23][j].strip())
+					count_post.append(0)
+					
+		for j in range(0,len(metalist[0])):
+			check_date = str(metalist[3][j]) + "/" + str(metalist[4][j]) + "/" + str(math.floor(float(metalist[5][j])))
+			newdate2 = time.strptime(check_date, "%Y/%m/%d")
+			for o in range(0,len(tmp_obs_pre)):
+				if (metalist[23][j] == tmp_obs_pre[o]) and (newdate2 < peridate):
+					count_pre[o] = count_pre[o] + 1
+					continue
+		for j in range(0,len(metalist[0])):
+			check_date = str(metalist[3][j]) + "/" + str(metalist[4][j]) + "/" + str(math.floor(float(metalist[5][j])))
+			newdate2 = time.strptime(check_date, "%Y/%m/%d")
+			for o in range(0,len(tmp_obs_post)):
+				if(metalist[23][j] == tmp_obs_post[o]) and (newdate2 >= peridate):
+					count_post[o] = count_post[o] + 1
+		for o in range(0, len(count_pre)):
+			if count_pre[o] < 20:
+				pre_condemned_obs.append(tmp_obs_pre[o])
+		for o in range(0,len(count_post)):
+			if count_post[o] <20:
+				post_condemned_obs.append(tmp_obs_post[o])
+				
 		#Initializes and defines pre-perihelion statistical outputs
 		pre_mshift = []  
 		pre_r = []		
@@ -1052,9 +1128,9 @@ def main():
 		pre_count_per_obs = []
 		pre_other_mag = []
 		pre_last_mag_calculated = []
-		pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction, pre_other_mag, pre_last_mag_calculated, pre_resid_per_obs= stats_shifts('pre', metalist, last_mag_calculated, dates_pds_format, OBJDelta, OBJPhase, to_report_r,pre_condemned_obs, other_mag, first_pass, OBJJulianDate)
+		pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction, pre_other_mag, pre_last_mag_calculated, pre_resid_per_obs, pre_condemned_obs= stats_shifts('pre', metalist, last_mag_calculated, dates_pds_format, OBJDelta, OBJPhase, to_report_r,pre_condemned_obs, other_mag, first_pass, OBJJulianDate)
 				
-		print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+		#print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 		
 		#Initializes and defines post-perihelion statistical outputs
 		post_mshift = []
@@ -1069,7 +1145,7 @@ def main():
 		post_count_per_obs = []
 		post_other_mag = []
 		post_last_mag_calculated =[]
-		post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction, post_other_mag, post_last_mag_calculated, post_resid_per_obs= stats_shifts('post',  metalist, last_mag_calculated, dates_pds_format, OBJDelta, OBJPhase, to_report_r,post_condemned_obs, other_mag,first_pass, OBJJulianDate)	
+		post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction, post_other_mag, post_last_mag_calculated, post_resid_per_obs, post_condemned_obs= stats_shifts('post',  metalist, last_mag_calculated, dates_pds_format, OBJDelta, OBJPhase, to_report_r,post_condemned_obs, other_mag,first_pass, OBJJulianDate)	
 		
 		#sets this to 0 so that if we need to run stats_shifts again then we wont accidentally log the r-values again
 		first_pass = 0
@@ -1100,11 +1176,11 @@ def main():
 				
 				#returns t-statistic and corresponding p-statistics
 				t2, p2 = stats.ttest_ind(N1, N2, equal_var = False)
-				print(pre_obs_list[o], ' t = ',t2,' p = ', p2)
+				#print(pre_obs_list[o], ' t = ',t2,' p = ', p2)
 				#Adds observers who failed p-test to 'condemned list' to be avoided on future polynomial fit convergeances.
 				if p2 < 0.05:
 					drop_observers = 1
-					pre_condemned_obs.append(pre_obs_list[o])
+					pre_condemned_obs.append(pre_obs_list[o].strip())
 			#If we did deleted one observer, prepare their data to be in write format for stats_shifts and then rerun stats_shifts
 			#i.e., one observer failed the stationary test so we reconverge the polynomial fit / mshift values without the bias from their data present
 			if drop_observers ==1:
@@ -1112,7 +1188,7 @@ def main():
 				last_mag_calculated_sans_condemned_pre = []
 				for z in range(0,len(pre_last_mag_calculated)):
 					last_mag_calculated_sans_condemned_pre.append(pre_last_mag_calculated[z])
-				print(len(last_mag_calculated_sans_condemned_pre))
+				#print(len(last_mag_calculated_sans_condemned_pre))
 				for h in range (len(pre_last_mag_calculated)-1, -1, -1):
 					if pre_meta[h][23] in pre_condemned_obs:
 						del pre_last_mag_calculated[h]
@@ -1133,19 +1209,19 @@ def main():
 				del tmp[25]
 				del tmp[24]
 				number_t_pre = number_t_pre +1
-				print('###########################################################################################')
-				print('PRE: THE FOLLOWING OBSERVERS WERE REJECTED BY T-TEST: ')
-				print(pre_condemned_obs)
-				print('DROPPING THESE OBSERVERS AND REPEATING THE ITERATIVE PROCESS')
-				print('###########################################################################################')
-				pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction,pre_other_mag, tmp, pre_resid_per_obs = stats_shifts('pre', tmp, last_mag_calculated_sans_condemned_pre, tmp_dates, tmp_deltas, tmp_phase, pre_r, pre_condemned_obs, tmp_other_mags, first_pass, tmp_julian)
+				#print('###########################################################################################')
+				#print('PRE: THE FOLLOWING OBSERVERS WERE REJECTED BY T-TEST: ')
+				#print(pre_condemned_obs)
+				#print('DROPPING THESE OBSERVERS AND REPEATING THE ITERATIVE PROCESS')
+				#print('###########################################################################################')
+				pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction,pre_other_mag, tmp, pre_resid_per_obs, pre_condemned_obs = stats_shifts('pre', tmp, last_mag_calculated_sans_condemned_pre, tmp_dates, tmp_deltas, tmp_phase, pre_r, pre_condemned_obs, tmp_other_mags, first_pass, tmp_julian)
 			else:
 				terminate_iterations = 1
 		
 		#Repeats the above t- and p-tests for Post-perihelion data
 		terminate_iterations = 0
 		number_t_post = 0
-		print('###########################################################################################')
+		#print('###########################################################################################')
 		while terminate_iterations == 0:
 			drop_observers = 0
 			thismagsfound = magsfound
@@ -1165,15 +1241,15 @@ def main():
 							N2.append(p_func(post_r[i]) - post_mshift[i])
 			
 				t2, p2 = stats.ttest_ind(N1, N2, equal_var = False)
-				print(post_obs_list[o], ' t = ', t2,' p = ', p2) #t1, 2*p1)
+				#print(post_obs_list[o], ' t = ', t2,' p = ', p2) #t1, 2*p1)
 				if p2 < 0.05:
 					drop_observers = 1
-					post_condemned_obs.append(post_obs_list[o])
+					post_condemned_obs.append(post_obs_list[o].strip())
 			if drop_observers ==1:
 				last_mag_calculated_sans_condemned_post = []
 				for z in range(0,len(post_last_mag_calculated)):
 					last_mag_calculated_sans_condemned_post.append(post_last_mag_calculated[z])
-				print(len(last_mag_calculated_sans_condemned_post))
+				#print(len(last_mag_calculated_sans_condemned_post))
 				for h in range (len(post_last_mag_calculated)-1, -1, -1):
 					if post_meta[h][23] in post_condemned_obs:
 						del post_last_mag_calculated[h]
@@ -1195,19 +1271,19 @@ def main():
 				del tmp[25]
 				del tmp[24]
 				last_mag_calculated_sans_condemned = []
-				print('#################################################################################')
-				print('POST: THE FOLLOWING OBSERVERS WERE REJECTED BY T-TEST: ')
-				print(post_condemned_obs)
-				print('DROPPING THESE OBSERVERS AND REPEATING THE ITERATIVE PROCESS FOR POSTPERIHELION')
-				print('#################################################################################')
-				post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction,post_other_mag, tmp, post_resid_per_obs = stats_shifts('post', tmp, last_mag_calculated_sans_condemned_post, tmp_dates, tmp_deltas, tmp_phase, post_r, post_condemned_obs, tmp_other_mags, first_pass, tmp_julian)
+				#print('#################################################################################')
+				#print('POST: THE FOLLOWING OBSERVERS WERE REJECTED BY T-TEST: ')
+				#print(post_condemned_obs)
+				#print('DROPPING THESE OBSERVERS AND REPEATING THE ITERATIVE PROCESS FOR POSTPERIHELION')
+				#print('#################################################################################')
+				post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction,post_other_mag, tmp, post_resid_per_obs, post_condemned_obs = stats_shifts('post', tmp, last_mag_calculated_sans_condemned_post, tmp_dates, tmp_deltas, tmp_phase, post_r, post_condemned_obs, tmp_other_mags, first_pass, tmp_julian)
 			else:
 				terminate_iterations = 1
 				
 				
-		print(number_t_pre, 'pre t tests', number_t_post, 'post t tests')
-		print('PRE: observers who failed t-test and were removed: ', pre_condemned_obs)
-		print('POST: observers who failed t-test and were removed: ', post_condemned_obs)				
+		#print(number_t_pre, 'pre t tests', number_t_post, 'post t tests')
+		#print('PRE: observers who failed t-test and were removed: ', pre_condemned_obs)
+		#print('POST: observers who failed t-test and were removed: ', post_condemned_obs)				
 	
 		#Adds headers and writes out pre-perihelion data to file 'pre-stats.csv'
 		if (len(pre_meta) != 0) and (pre_meta[0] != 0):
@@ -1227,7 +1303,7 @@ def main():
 				file_writer.writerow([pre_meta[k][0],pre_meta[k][1],pre_meta[k][2],pre_meta[k][3],pre_meta[k][4],pre_meta[k][5],pre_meta[k][6],pre_meta[k][7],pre_meta[k][8],pre_meta[k][9],pre_meta[k][10],pre_meta[k][11],pre_meta[k][12],pre_meta[k][13],pre_meta[k][14],pre_meta[k][15],pre_meta[k][16],pre_meta[k][17],pre_meta[k][18],pre_meta[k][19],pre_meta[k][20],pre_meta[k][21],pre_meta[k][22],pre_meta[k][23], pre_meta[k][24],pre_r[k],pre_meta[k][28], pre_last_mag_calculated[k], pre_meta[k][25], pre_mshift[k], pre_meta[k][26], pre_meta[k][27], pre_last_mag_correction[k], pre_meta[k][29]])	
 		else:
 			print('No preperihelion data to perform statistics on')
-			print('##########################################################################################')
+			#print('##########################################################################################')
 
 		#Adds headers and writes out post-perihelion data to file 'post-stats.csv'
 		if (len(post_meta) != 0) and (post_meta[0] != 0):
@@ -1247,7 +1323,7 @@ def main():
 				file_writer.writerow([post_meta[k][0],post_meta[k][1],post_meta[k][2],post_meta[k][3],post_meta[k][4],post_meta[k][5],post_meta[k][6],post_meta[k][7],post_meta[k][8],post_meta[k][9],post_meta[k][10],post_meta[k][11],post_meta[k][12],post_meta[k][13],post_meta[k][14],post_meta[k][15],post_meta[k][16],post_meta[k][17],post_meta[k][18],post_meta[k][19],post_meta[k][20],post_meta[k][21],post_meta[k][22],post_meta[k][23], post_meta[k][24],post_r[k],post_meta[k][28],post_last_mag_calculated[k], post_meta[k][25], post_mshift[k], post_meta[k][26], post_meta[k][27], post_last_mag_correction[k], post_meta[k][29]])	
 		else:
 			print('No postperihelion data to perform statistics on')
-			print('###########################################################################################')
+			#print('###########################################################################################')
 
 	#Plots all available data. That is, any combination of mraw, mhelio, mph, and mshifts depending on 
 	#which combination of those the user has calculated (i.e., running --heliocentric --shifts will only plot mraw, mhelio, and mshift).
@@ -1289,7 +1365,7 @@ def main():
 			mags_to_plot_meta.append(tmp_r)
 			count = count +1
 			print('mraw found, adding to plot')
-			titles.append('Reported Visual Magnitude Vs. Geocentric Distance')
+			titles.append('Reported Visual Magnitude')
 			axis.append('mraw')
 		except:
 			print('Please perform --heliocentric, --phase, or both before plotting')
@@ -1379,10 +1455,10 @@ def main():
 				for j in range(0, len(mags_to_plot_meta[1])):
 					to_check_min_max_x.append(float(mags_to_plot_meta[i][j]))
 				
-		true_max_x = math.ceil(max(to_check_min_max_x))
-		true_min_x = math.floor(min(to_check_min_max_x))
-		true_max_y = math.ceil(max(to_check_min_max_y))
-		true_min_y = math.floor(min(to_check_min_max_y))
+		true_max_x = math.ceil(max(to_check_min_max_x))	#ceil
+		true_min_x = math.floor(min(to_check_min_max_x))	#floor
+		true_max_y = math.ceil(max(to_check_min_max_y))	#ceil	
+		true_min_y = math.floor(min(to_check_min_max_y)) #floor			
 				
 		#print(len(mags_to_plot_meta))
 		for i in range(0,len(mags_to_plot_meta)):
@@ -1392,27 +1468,75 @@ def main():
 			fig = plt.figure(figsize=(1406./96., 897./96.))
 			m1 = MultipleLocator(0.25)
 			m2 = MultipleLocator(0.25)
-			ax = fig.add_subplot(111)
-			ax.yaxis.set_minor_locator(m2)
-			ax.xaxis.set_minor_locator(m1)
-			ax.set_xticks(np.arange(true_min_x -1, true_max_x+1,1))
-			ax.set_yticks(np.arange(true_min_y -1, true_max_y+1,1))
-			ax.tick_params(which='major', length=10, width=1, bottom=True, top=True, left=True, right=True)
-			ax.tick_params(which='minor', length=5, width=1,labelbottom=True,bottom=True,top=True, left=True, right=True)
-			ax.tick_params(which='both', direction='in', labelsize='15')
-			ax.set_xlim(true_min_x-1, true_max_x+1)
-			ax.set_ylim(true_min_y-1, true_max_y+1)
-			ax.plot(mags_to_plot_meta[i+1], mags_to_plot_meta[i], '+', mew=1.1, ms=13, color='blue')
-			ax.invert_yaxis()
-			ax.set_title(titles[int(i/2)], fontsize='20')
-			ax.set_xlabel('r (au)', fontsize='20')
-			ax.set_ylabel(axis[int(i/2)], fontsize='20')
+			m3 = MultipleLocator(0.25)
+			m4 = MultipleLocator(0.25)
+
+			gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1], wspace=0.0)#, hspace=0.0, top=0.95, bottom=0.05, left=0.17, right=0.845)
+			ax1= plt.subplot(gs[0,0])
+			ax2= plt.subplot(gs[0,1])
+						
+			if CCD_Bool == 1:
+				append_title = "Visual"
+			else:
+				append_title = "CCD"
+						
+			fig.suptitle(titles[int(i/2)]+", "+target_nickname+", "+append_title, fontsize='20')
+			fig.text(0.5, 0.04, 'r (au)', ha='center',fontsize='20')
+			fig.text(0.04, 0.5, axis[int(i/2)], va='center', rotation='vertical', fontsize='20')
+
+			#ax1.set_xscale('symlog')
+			ax1.xaxis.set_major_formatter(ScalarFormatter())
+			ax1.yaxis.set_minor_locator(m4)
+			ax1.xaxis.set_minor_locator(m3)
+			ax1.set_xticks(np.arange(true_min_x-1, round(r_at_perihelion),1))
+			ax1.set_yticks(np.arange(true_min_y -1, true_max_y+1,1))
+			ax1.tick_params(which='major', length=10, width=1, bottom=True, top=True, left=True, right=True)
+			ax1.tick_params(which='minor', length=5, width=1,labelbottom=True,bottom=True,top=True, left=True, right=True)
+			ax1.tick_params(which='both', direction='in', labelsize='16')
+			ax1.set_xlim(true_min_x-0.5,-1*r_at_perihelion)
+			ax1.set_ylim(true_min_y-1, true_max_y+1)
+			ax1.plot(mags_to_plot_meta[i+1], mags_to_plot_meta[i], '+', mew=1.1, ms=13, color='blue')
+			ax1.invert_yaxis()
+
+			#ax2.set_xscale('symlog')
+			ax2.xaxis.set_major_formatter(ScalarFormatter())
+			ax2.ticklabel_format(useOffset=False)
+			ax2.yaxis.set_minor_locator(m2)
+			ax2.xaxis.set_minor_locator(m1)
+			ax2.set_xticks(np.arange(round(r_at_perihelion), true_max_x+1,1))
+			ax2.set_yticklabels([])
+			ax2.get_xticklabels()[0].set_visible(False)
+			ax2.set_yticks(np.arange(true_min_y -1, true_max_y+1,1))
+			ax2.tick_params(which='major', length=10, width=1, bottom=True, top=True, left=True, right=True)
+			ax2.tick_params(which='minor', length=5, width=1,labelbottom=True,bottom=True,top=True, left=True, right=True)
+			ax2.tick_params(which='both', direction='in',labelright=False, labelsize='16')
+			ax2.set_xlim(r_at_perihelion, true_max_x+0.5)
+			ax2.set_ylim(true_min_y-1, true_max_y+1)
+			ax2.plot(mags_to_plot_meta[i+1], mags_to_plot_meta[i], '+', mew=1.1, ms=13, color='red')
+			ax2.invert_yaxis()
+						
+			ax1.spines['right'].set_visible(False)
+			ax2.spines['left'].set_visible(False)
+			ax1.yaxis.tick_left()
+			ax1.tick_params(labelright='off')
+			ax2.yaxis.tick_right()
+
+			d = 0. # how big to make the diagonal lines in axes coordinates
+			kwargs = dict(transform=ax1.transAxes, color='k', clip_on=False)
+			ax1.plot((1-d,1+d), (-d,+d), **kwargs)
+			ax1.plot((1-d,1+d),(1-d,1+d), **kwargs)
+			kwargs.update(transform=ax2.transAxes)  # switch to the bottom axes
+			ax2.plot((-d,+d), (1-d,1+d), **kwargs)
+			ax2.plot((-d,+d), (-d,+d), **kwargs)
+
 			dir_path = os.path.dirname(os.path.realpath(__file__))
 			#title = dir_path+ "\" + target_nickname + "_graph_"+str(int(i/2))
-			title = dir_path + '\_' + target_nickname + '_graph_'+str(int(i/2))
+			title = dir_path + '\_' +append_title +"_"+ target_nickname + '_graph_'+str(int(i/2))
 			canvas = FigureCanvas(fig)
 			canvas.print_figure(title, dpi=96, bbox_inches='tight')
-			ax.cla()
+			#plt.show()
+			ax1.cla()
+			ax2.cla()
 			
 if __name__ == '__main__':
 	main()
