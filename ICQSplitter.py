@@ -1611,7 +1611,7 @@ def main():
 
 			dir_path = os.path.dirname(os.path.realpath(__file__))
 			#title = dir_path+ "\" + target_nickname + "_graph_"+str(int(i/2))
-			title = dir_path + '\_' +append_title +"_"+ target_nickname + '_graph_'+str(int(i/2))
+			title = dir_path + '\_' +append_title +"_"+ target_nickname + '_graph_'+str(int(i/2)) + ".png"
 			canvas = FigureCanvas(fig)
 			canvas.print_figure(title, dpi=96, bbox_inches='tight')
 			#plt.show()
