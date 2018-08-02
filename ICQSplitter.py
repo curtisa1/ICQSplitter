@@ -32,7 +32,7 @@ mshift Vs. heliocentric distance). (note at least one of --heliocentric and --ph
 
 
 
-curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-06-01
+curtisa1 (at) mail.usf.edu, latest version: v3.1, 2018-08-02
 
 Available command line arguments (type these into terminal when compiling program):
 --heliocentric
@@ -46,6 +46,7 @@ Available command line arguments (type these into terminal when compiling progra
 *   v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 570 - 576 and 639 - 645 and 711 - 714 to see the output files!.
 *   v2.2: Julian Dates not output along with YYYY-MM-DDTHH:MM:SS datetimes.
 *   v3.0: Fixed issue where --stats was reading in observers with a statistically insignifican number of points (aka 20), changed design of figures
+*	v3.1: Fixed some more edge case issues with --stats
 
 
 """
@@ -54,14 +55,14 @@ Available command line arguments (type these into terminal when compiling progra
 ####### Input Arguments #######
 ###############################
 
-input_file = 'lightcurve_20180531-235334.dat'			#Name of your input file
-target_nickname = 'hyakutake'						#Nickname of target for output file organization (for example, HB = Hale-Bopp)
-small_body_designation = 'C/1996 B2'			#Name of your small body ex) 'ceres' or 'eris'
+input_file = '2001q4.dat'			#Name of your input file
+target_nickname = '2001q4'						#Nickname of target for output file organization (for example, HB = Hale-Bopp)
+small_body_designation = 'C/2001 Q4'			#Name of your small body ex) 'ceres' or 'eris'
 JPL_Time_Increment = 30 					#How much to increment JPL queries in minutes up to 60.
 ouput_file_kept_points = 'keepers.csv'		#Name of output file for points that meet all sorting criterion
 output_file_rejected_points = 'removed.csv'	#Name of output file for points that were removed from the data
-perihelion = '1996/05/01'					#Datetime of perihelion format YYYY/MM/DD
-CCD_Bool = 1								#If 0 then user only has CCD measurements, if 1 then user has visual magnitude measurements
+perihelion = '2004/05/15'					#Datetime of perihelion format YYYY/MM/DD
+CCD_Bool = 1								#If 0 then user only has CCD measurements only, if 1 then user has visual magnitude measurements
 
 ###############################
 ####### Input Arguments #######
@@ -318,6 +319,7 @@ def queryJPL():
 	peri_date = str(peri_date.date()).replace("-","/")
 	plus_one_day_peri = str(plus_one_day_peri.date()).replace("-","/")
 
+	print("looking for closest observation to perihelion date provided")
 	for j in range (0, len(metalist[3])):
 		check_date = str(metalist[3][j]) + "/" + str(metalist[4][j]) + "/" + str(math.floor(float(metalist[5][j])))
 		newdate1 = time.strptime(initial_date, "%Y/%m/%d")
@@ -331,23 +333,73 @@ def queryJPL():
 		if j == 0:
 			last_newdate2 = newdate2
 			continue
-		if (peridate >= newdate2) and (last_newdate2 > peridate):
-			if newdate2 == peridate:
-				small_body_for_peri_r = callhorizons.query(small_body_designation)
-				small_body_for_peri_r.set_epochrange(peri_date,plus_one_day_peri,str(JPL_Time_Increment) + 'm')
-				small_body_for_peri_r.get_ephemerides(500)
-				tmp_r_at_peri_date = small_body_for_peri_r['r']
-			else:
-				this_date = datetime.strptime(check_date,"%Y/%m/%d")
-				plus_one_day_this = this_date + timedelta(days=1)
-				this_date = str(this_date.date()).replace("-","/")
-				plus_one_day_this = str(plus_one_day_this.date()).replace("-","/")
-				small_body_for_peri_r = callhorizons.query(small_body_designation)
-				small_body_for_peri_r.set_epochrange(this_date,plus_one_day_this,str(JPL_Time_Increment) + 'm')
-				small_body_for_peri_r.get_ephemerides(500)
-				tmp_r_at_peri_date = small_body_for_peri_r['r']
-		last_newdate2 = newdate2
+		if (peridate >= newdate2) and (last_newdate2 <= newdate2):
+			thisj = j
+	last_newdate2 = newdate2
 
+	try:
+		check_date = str(metalist[3][thisj]) + "/" + str(metalist[4][thij]) + "/" + str(math.floor(float(metalist[5][thisj])))
+		newdate1 = time.strptime(initial_date, "%Y/%m/%d")
+		newdate2 = time.strptime(check_date, "%Y/%m/%d")
+		newdate3 = time.strptime(final_date, "%Y/%m/%d")
+		peridate = time.strptime(perihelion, "%Y/%m/%d")			
+
+		if newdate2 == peridate:
+			small_body_for_peri_r = callhorizons.query(small_body_designation)
+			small_body_for_peri_r.set_epochrange(peri_date,plus_one_day_peri,str(JPL_Time_Increment) + 'm')
+			small_body_for_peri_r.get_ephemerides(500)
+			tmp_r_at_peri_date = small_body_for_peri_r['r']
+		else:
+			this_date = datetime.strptime(check_date,"%Y/%m/%d")
+			plus_one_day_this = this_date + timedelta(days=1)
+			this_date = str(this_date.date()).replace("-","/")
+			plus_one_day_this = str(plus_one_day_this.date()).replace("-","/")
+			small_body_for_peri_r = callhorizons.query(small_body_designation)
+			small_body_for_peri_r.set_epochrange(this_date,plus_one_day_this,str(JPL_Time_Increment) + 'm')
+			small_body_for_peri_r.get_ephemerides(500)
+			tmp_r_at_peri_date = small_body_for_peri_r['r']
+	
+	except:
+		for j in range (0, len(metalist[3])):
+			check_date = str(metalist[3][j]) + "/" + str(metalist[4][j]) + "/" + str(math.floor(float(metalist[5][j])))
+			newdate1 = time.strptime(initial_date, "%Y/%m/%d")
+			newdate2 = time.strptime(check_date, "%Y/%m/%d")
+			newdate3 = time.strptime(final_date, "%Y/%m/%d")
+			peridate = time.strptime(perihelion, "%Y/%m/%d")
+			if newdate2 < newdate1:
+				initial_date = check_date
+			elif newdate2 > newdate3:
+				final_date = check_date
+			if j == 0:
+				last_newdate2 = newdate2
+				continue
+			if (peridate <= newdate2) and (last_newdate2 > newdate2):
+				thisj = j
+				last_newdate2 = newdate2
+				
+		check_date = str(metalist[3][thisj]) + "/" + str(metalist[4][thisj]) + "/" + str(math.floor(float(metalist[5][thisj])))
+		newdate1 = time.strptime(initial_date, "%Y/%m/%d")
+		newdate2 = time.strptime(check_date, "%Y/%m/%d")
+		newdate3 = time.strptime(final_date, "%Y/%m/%d")
+		peridate = time.strptime(perihelion, "%Y/%m/%d")	
+		if newdate2 == peridate:
+			small_body_for_peri_r = callhorizons.query(small_body_designation)
+			small_body_for_peri_r.set_epochrange(peri_date,plus_one_day_peri,str(JPL_Time_Increment) + 'm')
+			small_body_for_peri_r.get_ephemerides(500)
+			tmp_r_at_peri_date = small_body_for_peri_r['r']
+		else:
+			this_date = datetime.strptime(check_date,"%Y/%m/%d")
+			plus_one_day_this = this_date + timedelta(days=1)
+			this_date = str(this_date.date()).replace("-","/")
+			plus_one_day_this = str(plus_one_day_this.date()).replace("-","/")
+			small_body_for_peri_r = callhorizons.query(small_body_designation)
+			small_body_for_peri_r.set_epochrange(this_date,plus_one_day_this,str(JPL_Time_Increment) + 'm')
+			small_body_for_peri_r.get_ephemerides(500)
+			tmp_r_at_peri_date = small_body_for_peri_r['r']
+
+	print('closest observation found')
+	print('Querying JPL HORIZONS')
+		
 	r_at_perihelion = float("%.1f" % tmp_r_at_peri_date[math.floor(len(tmp_r_at_peri_date)/2)])
 	initial_date = initial_date.replace("/","-") + " 00:00"
 	final_date = final_date.replace("/","-") + " 23:00"
@@ -474,7 +526,6 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 			for j in range(0, len(listoflists[0])):
 				other_mag.append('')
 		#for each observer, check if it is pre-perihelion, if so take log(r and sort)
-							
 		for j in range (0, len(listoflists[0])):
 			tmprow = []
 			newdate4 = time.strptime(perihelion, "%Y/%m/%d")
@@ -509,7 +560,7 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 				other_mag.append('')
 		#for each observer, check if it is pre-perihelion, if so take log(r and sort)
 				
-		for j in range (0, len(listoflists[0])):	
+		for j in range (0, len(listoflists[0])):
 			tmprow = []
 			newdate4 = time.strptime(perihelion, "%Y/%m/%d")
 			datetocheck = str(listoflists[3][j]) + "/" + str(listoflists[4][j]) + "/" + str(math.floor(float(listoflists[5][j])))
@@ -533,20 +584,16 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 					r.append(float(helio_distances[j]))
 				tmprow.append(dateJulian[j])
 				stats.append(tmprow)
-
-			#print(stats)
 			
 	#stats is the "metalist" containing all of the information in the function's input arguments.
 	if len(stats) != 0:
-	
+
 		sorted_stats, mags_sorted_stat, r_sorted_stat = sortbyr(stats,r,mags,0)
-				
+
 		for i in range (0, len(sorted_stats)):
 			if sorted_stats[i][23].strip() not in obs_list:
 				obs_list.append(sorted_stats[i][23].strip())
-				
-		#print(preorpost, obs_list)
-								
+												
 		#Beginning iterating polynomial fits to convergance
 		for k in range (0, 21):
 		
@@ -709,11 +756,24 @@ def stats_shifts(preorpost, listoflists, corrected_mag, dateThours, deltas, phas
 					#print('The final poly_fit is ', new_poly_fit)
 					break
 					
-					
+	
+	#for i in range(0,len(sorted_stats)):
+	#	print(i)
+	#	print(sorted_stats[i])
+	
 	if len(mshift) == 0 :
 		for i in range (0,30):
 			sorted_stats.append(0)
-	return mshift, obs_list, sorted_stats, r_sorted_stat, new_poly_fit, original_poly_fit, stdev_resid_per_observer, mean_resid_per_observer, count_per_observer, residuals,  sorted_stats[28], mags_sorted_stat, resid_per_obs, condemned_list
+
+	return_this_other_mag=[]
+	
+	if (sorted_stats[0] == 0) and (sorted_stats[1] ==0) and (sorted_stats[3]==0) and (sorted_stats[4]==0):
+		return_this_other_mag.append(0)
+	else:
+		for i in range(0,len(sorted_stats)):
+			return_this_other_mag.append(sorted_stats[i][28])
+		
+	return mshift, obs_list, sorted_stats, r_sorted_stat, new_poly_fit, original_poly_fit, stdev_resid_per_observer, mean_resid_per_observer, count_per_observer, residuals,  return_this_other_mag, mags_sorted_stat, resid_per_obs, condemned_list #return_this_other_mag used to be sorted_stats[28]
 
 #Assigns headers for output stats files
 def add_headers_stats(inputlist, inputpreorpost,other):
@@ -1086,11 +1146,11 @@ def main():
 		for j in range(0,len(metalist[0])):
 			check_date = str(metalist[3][j]) + "/" + str(metalist[4][j]) + "/" + str(math.floor(float(metalist[5][j])))
 			newdate2 = time.strptime(check_date, "%Y/%m/%d")
-			if newdate2 < peridate:
+			if newdate2 <= peridate:
 				if metalist[23][j] not in tmp_obs_pre:
 					tmp_obs_pre.append(metalist[23][j].strip())
 					count_pre.append(0)
-			if newdate2 >= peridate:
+			if newdate2 > peridate:
 				if metalist[23][j] not in tmp_obs_post:
 					tmp_obs_post.append(metalist[23][j].strip())
 					count_post.append(0)
@@ -1112,9 +1172,18 @@ def main():
 			if count_pre[o] < 20:
 				pre_condemned_obs.append(tmp_obs_pre[o])
 		for o in range(0,len(count_post)):
-			if count_post[o] <20:
+			if count_post[o] < 20:
 				post_condemned_obs.append(tmp_obs_post[o])
-				
+
+		# ind_obs = []
+		# for q in range(0,len(metalist[23])):
+			# if metalist[23][q] not in ind_obs:
+				# ind_obs.append(metalist[23][q])
+		#print(post_condemned_obs, len(post_condemned_obs))
+		#print(pre_condemned_obs, len(pre_condemned_obs))
+		#print(tmp_obs_post,len(tmp_obs_post))
+		#print(tmp_obs_pre,len(tmp_obs_pre))
+		
 		#Initializes and defines pre-perihelion statistical outputs
 		pre_mshift = []  
 		pre_r = []		
@@ -1214,6 +1283,12 @@ def main():
 				#print(pre_condemned_obs)
 				#print('DROPPING THESE OBSERVERS AND REPEATING THE ITERATIVE PROCESS')
 				#print('###########################################################################################')
+				
+				if(len(pre_condemned_obs) == len(tmp_obs_pre)):
+					kicked_all_obs_pre = 1
+				if(len(post_condemned_obs) == len(tmp_obs_post)):
+					kicked_all_obs_post = 1
+					
 				pre_mshift, pre_obs_list, pre_meta, pre_r,  pre_final_polyfit, pre_original_polyfit, pre_final_stdevs, pre_final_mean_resid, pre_count_per_obs, pre_last_mag_correction,pre_other_mag, tmp, pre_resid_per_obs, pre_condemned_obs = stats_shifts('pre', tmp, last_mag_calculated_sans_condemned_pre, tmp_dates, tmp_deltas, tmp_phase, pre_r, pre_condemned_obs, tmp_other_mags, first_pass, tmp_julian)
 			else:
 				terminate_iterations = 1
@@ -1276,6 +1351,11 @@ def main():
 				#print(post_condemned_obs)
 				#print('DROPPING THESE OBSERVERS AND REPEATING THE ITERATIVE PROCESS FOR POSTPERIHELION')
 				#print('#################################################################################')
+				
+				if(len(pre_condemned_obs) == len(tmp_obs_pre)):
+					kicked_all_obs_pre = 1
+				if(len(post_condemned_obs) == len(tmp_obs_post)):
+					kicked_all_obs_post = 1
 				post_mshift, post_obs_list, post_meta, post_r,  post_final_polyfit, post_original_polyfit, post_final_stdevs, post_final_mean_resid, post_count_per_obs, post_last_mag_correction,post_other_mag, tmp, post_resid_per_obs, post_condemned_obs = stats_shifts('post', tmp, last_mag_calculated_sans_condemned_post, tmp_dates, tmp_deltas, tmp_phase, post_r, post_condemned_obs, tmp_other_mags, first_pass, tmp_julian)
 			else:
 				terminate_iterations = 1
@@ -1531,7 +1611,7 @@ def main():
 
 			dir_path = os.path.dirname(os.path.realpath(__file__))
 			#title = dir_path+ "\" + target_nickname + "_graph_"+str(int(i/2))
-			title = dir_path + '\_' +append_title +"_"+ target_nickname + '_graph_'+str(int(i/2)) +".png"
+			title = dir_path + '\_' +append_title +"_"+ target_nickname + '_graph_'+str(int(i/2))
 			canvas = FigureCanvas(fig)
 			canvas.print_figure(title, dpi=96, bbox_inches='tight')
 			#plt.show()
