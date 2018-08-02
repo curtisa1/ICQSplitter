@@ -84,10 +84,12 @@ is the raw magnitude and Φ(ϴ) is Schleicher's composite phase function.
 curtisa1 (at) mail.usf.edu, latest version: v1.0, 2018-05-21
 
 *	v1.0: Sorts problematic entries from data, performs heliocentric distance and phase angle corrections.
-*	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements, fixed encoding issue reading in strange characters
+*	v1.1: Added Input Argument CCD_Bool for people using only CCD Measurements.
 *	v2.0: Added statistical correction and plotting command line arguments!
-* v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 509 - 515 and 578 - 584 and 650 - 653 to see the output files!.
-* v2.2: Julian Dates not output along with YYYY-MM-DDTHH:MM:SS datetimes.
+*   v2.1: Fixed issues with statistical analysis. Added option to get full detailed stats analysis. Uncomment 570 - 576 and 639 - 645 and 711 - 714 to see the output files!.
+*   v2.2: Julian Dates not output along with YYYY-MM-DDTHH:MM:SS datetimes.
+*   v3.0: Fixed issue where --stats was reading in observers with a statistically insignifican number of points (aka 20), changed design of figures
+*	v3.1: Fixed some more edge case issues with --stats
 
 Sources of error (albeit miniscule) which exist in this code include:
 -Each observation in the data is only compared to JPL HORIZONS to the nearest half-hour, so the extracted phase 
