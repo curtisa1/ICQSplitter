@@ -1,4 +1,7 @@
 # ICQSplitter
+**Important**
+An error has been found in the --stats subroutine. Please avoid using it for the time being.
+
 **Citing this Repository**
 
 Since some people have asked, as per AAS's style guidelines (availble here: http://journals.aas.org/authors/references.html), please cite the DOI for the most recent software release as:
