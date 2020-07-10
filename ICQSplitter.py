@@ -86,9 +86,7 @@ from scipy import linalg
 from matplotlib.ticker import MultipleLocator
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
-from matplotlib.gridspec import GridSpec
-import matplotlib.gridspec as gridspec
-from matplotlib.ticker import ScalarFormatter
+import matplotlib.ticker as tickers
 from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning) 
@@ -807,8 +805,22 @@ def add_headers_stats(inputlist, inputpreorpost,other):
     inputlist[0].append('Phase Angle')
     inputlist[0].append(other)
     inputlist[0].append('Julian Date')
-    
+   
+class MultipleOffsetLocator(tickers.MultipleLocator):
 
+    def __init__(self, base=1.0, offset=0.):
+        self._base = tickers.Base(base)
+        self._offset = offset
+
+    def tick_values(self, vmin, vmax):
+        if vmax < vmin:
+            vmin, vmax = vmax, vmin
+        vmin = self._base.ge(vmin)
+        base = self._base.get_base()
+        n = (vmax - vmin + 0.001 * base) // base
+        locs = self._offset + vmin - base + np.arange(n + 3) * base
+        return self.raise_if_exceeds(locs)
+   
 def main():
     global metalist
     global list_of_reasons_removed
@@ -1538,83 +1550,37 @@ def main():
         true_max_y = math.ceil(max(to_check_min_max_y))    #ceil    
         true_min_y = math.floor(min(to_check_min_max_y)) #floor            
                 
-        #print(len(mags_to_plot_meta))
         for i in range(0,len(mags_to_plot_meta)):
             if i%2 == 1:
                 continue
-            
-            fig = plt.figure(figsize=(1406./96., 897./96.))
-            m1 = MultipleLocator(0.25)
-            m2 = MultipleLocator(0.25)
-            m3 = MultipleLocator(0.25)
-            m4 = MultipleLocator(0.25)
-
-            gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1], wspace=0.0)#, hspace=0.0, top=0.95, bottom=0.05, left=0.17, right=0.845)
-            ax1= plt.subplot(gs[0,0])
-            ax2= plt.subplot(gs[0,1])
-                        
+                
             if CCD_Bool == 1:
                 append_title = "Visual"
             else:
                 append_title = "CCD"
-                        
+            
+            fig, ax = plt.subplots(1,1, figsize=(14,8))
             fig.suptitle(titles[int(i/2)]+", "+target_nickname+", "+append_title, fontsize='20')
-            fig.text(0.5, 0.04, 'r (au)', ha='center',fontsize='20')
-            fig.text(0.04, 0.5, axis[int(i/2)], va='center', rotation='vertical', fontsize='20')
 
-            #ax1.set_xscale('symlog')
-            ax1.xaxis.set_major_formatter(ScalarFormatter())
-            ax1.yaxis.set_minor_locator(m4)
-            ax1.xaxis.set_minor_locator(m3)
-            ax1.set_xticks(np.arange(true_min_x-1, round(r_at_perihelion),1))
-            ax1.set_yticks(np.arange(true_min_y -1, true_max_y+1,1))
-            ax1.tick_params(which='major', length=10, width=1, bottom=True, top=True, left=True, right=True)
-            ax1.tick_params(which='minor', length=5, width=1,labelbottom=True,bottom=True,top=True, left=True, right=True)
-            ax1.tick_params(which='both', direction='in', labelsize='16')
-            ax1.set_xlim(true_min_x-0.5,-1*r_at_perihelion)
-            ax1.set_ylim(true_min_y-1, true_max_y+1)
-            ax1.plot(mags_to_plot_meta[i+1], mags_to_plot_meta[i], '+', mew=1.1, ms=13, color='blue')
-            ax1.invert_yaxis()
-
-            #ax2.set_xscale('symlog')
-            ax2.xaxis.set_major_formatter(ScalarFormatter())
-            ax2.ticklabel_format(useOffset=False)
-            ax2.yaxis.set_minor_locator(m2)
-            ax2.xaxis.set_minor_locator(m1)
-            ax2.set_xticks(np.arange(round(r_at_perihelion), true_max_x+1,1))
-            ax2.set_yticklabels([])
-            ax2.get_xticklabels()[0].set_visible(False)
-            ax2.set_yticks(np.arange(true_min_y -1, true_max_y+1,1))
-            ax2.tick_params(which='major', length=10, width=1, bottom=True, top=True, left=True, right=True)
-            ax2.tick_params(which='minor', length=5, width=1,labelbottom=True,bottom=True,top=True, left=True, right=True)
-            ax2.tick_params(which='both', direction='in',labelright=False, labelsize='16')
-            ax2.set_xlim(r_at_perihelion, true_max_x+0.5)
-            ax2.set_ylim(true_min_y-1, true_max_y+1)
-            ax2.plot(mags_to_plot_meta[i+1], mags_to_plot_meta[i], '+', mew=1.1, ms=13, color='red')
-            ax2.invert_yaxis()
-                        
-            ax1.spines['right'].set_visible(False)
-            ax2.spines['left'].set_visible(False)
-            ax1.yaxis.tick_left()
-            ax1.tick_params(labelright='off')
-            ax2.yaxis.tick_right()
-
-            d = 0. # how big to make the diagonal lines in axes coordinates
-            kwargs = dict(transform=ax1.transAxes, color='k', clip_on=False)
-            ax1.plot((1-d,1+d), (-d,+d), **kwargs)
-            ax1.plot((1-d,1+d),(1-d,1+d), **kwargs)
-            kwargs.update(transform=ax2.transAxes)  # switch to the bottom axes
-            ax2.plot((-d,+d), (1-d,1+d), **kwargs)
-            ax2.plot((-d,+d), (-d,+d), **kwargs)
+            ax.invert_yaxis()
+            ax.set_ylabel(axis[int(i/2)], fontsize=20)
+            ax.set_xlabel(r'$r (au)$', fontsize=20)
+            ax.set_xlim(true_min_x-2, true_max_x+2)
+            ax.set_ylim(true_max_y+2, true_min_y-2)
+            ax.set_xticks(np.arange(true_min_x-1, true_max_x+1,1))
+            ax.yaxis.set_major_locator(MultipleOffsetLocator(2,0))
+            ax.yaxis.set_minor_locator(tickers.MultipleLocator(0.5))
+            ax.xaxis.set_major_locator(MultipleOffsetLocator(2,1)) #was 150,0 or 2,1
+            ax.xaxis.set_minor_locator(tickers.MultipleLocator(0.5)) #was 25 or .5
+            ax.tick_params(axis='both', which='both', labelsize=20, direction='in', top=True, right=True, length=3, width=1)
+            ax.tick_params(axis='both', which='major', length=7, width=1)
+            ax.grid(linestyle='--', lw=0.8)
+            ax.plot(mags_to_plot_meta[i+1], mags_to_plot_meta[i], '+', mew=1.1, ms=13, color='blue')
 
             dir_path = os.path.dirname(os.path.realpath(__file__))
-            #title = dir_path+ "\" + target_nickname + "_graph_"+str(int(i/2))
             title = dir_path + '\_' +append_title +"_"+ target_nickname + '_graph_'+str(int(i/2)) + ".png"
-            canvas = FigureCanvas(fig)
-            canvas.print_figure(title, dpi=96, bbox_inches='tight')
-            #plt.show()
-            ax1.cla()
-            ax2.cla()
+            plt.savefig(title, bbox_inches='tight')
+            ax.cla()
             
 if __name__ == '__main__':
     main()
