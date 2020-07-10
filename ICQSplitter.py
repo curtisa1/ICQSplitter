@@ -55,13 +55,13 @@ Available command line arguments (type these into terminal when compiling progra
 ####### Input Arguments #######
 ###############################
 
-input_file = 'lightcurve_20200126-192615.dat'            #Name of your input file
-target_nickname = 'HB'                        #Nickname of target for output file organization (for example, HB = Hale-Bopp)
-small_body_designation = '90002054;'            #Name of your small body ex) 'ceres' or 'eris'
+input_file = 'analysis_2020-07-10_1549.dat'            #Name of your input file
+target_nickname = 'NEOWISE'                        #Nickname of target for output file organization (for example, HB = Hale-Bopp)
+small_body_designation = 'C/2020 F3'            #Name of your small body ex) 'ceres' or 'eris'
 JPL_Time_Increment = 30                     #How much to increment JPL queries in minutes up to 60.
 ouput_file_kept_points = 'keepers.csv'        #Name of output file for points that meet all sorting criterion
 output_file_rejected_points = 'removed.csv'    #Name of output file for points that were removed from the data
-perihelion = '1997/04/01'                    #Datetime of perihelion format YYYY/MM/DD
+perihelion = '2020/07/03'                    #Datetime of perihelion format YYYY/MM/DD
 CCD_Bool = 1                                #If 0 then user only has CCD measurements only, if 1 then user has visual magnitude measurements
 
 ###############################
