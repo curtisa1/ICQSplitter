@@ -1,14 +1,16 @@
 # ICQSplitter
+
+**Readme**
+
+The International Comet Quarterly Splitter (ICQSplitter) is a Python based open-source software which will take data from the ICQ, Comet OBServation Database (COBS), and JPL HORIZONS to produce lightcurves of a specified target. The pipeline can be run on Unix or Windows-based operating systems. ICQSplitter was used in this text to produce lightcurves of visual magnitude data from amateur astronomers, but it is capable of taking in any measurements, including those from charge-coupled devices (CCD) that are reported in ICQ's standard 80-column format. The user has the options to apply any combination of corrections discussed in the main body of this paper. For example, a user with observational magnitudes from a relatively non-dusty comet may wish to forgo the application of a phase correction.
+
+This document describes the functionality of ICQSplitter Version 3.0 as of 28 January 2020. Also refer to the documentation for installation guides and additional support.
+
 **Citing this Repository**
 
 As per AAS's style guidelines (availble here: http://journals.aas.org/authors/references.html), please cite the DOI for the most recent software release as:
 
 Olivia Curtis, David Rabson, Nathan Lastra, Sharlene Cruz-Gonzalez, & Maria Womack. (2020, January 26). ICQSplitter: Python Tool for Handling Visual or CCD Magnitudes of Comets (Version v3.0). Zenodo. http://doi.org/10.5281/zenodo.3628044
-
-**Readme**
-The International Comet Quarterly Splitter (ICQSplitter) is a Python based open-source software which will take data from the ICQ, Comet OBServation Database (COBS), and JPL HORIZONS to produce lightcurves of a specified target. The pipeline can be run on Unix or Windows-based operating systems. ICQSplitter was used in this text to produce lightcurves of visual magnitude data from amateur astronomers, but it is capable of taking in any measurements, including those from charge-coupled devices (CCD) that are reported in ICQ's standard 80-column format. The user has the options to apply any combination of corrections discussed in the main body of this paper. For example, a user with observational magnitudes from a relatively non-dusty comet may wish to forgo the application of a phase correction.
-
-This document describes the functionality of ICQSplitter Version 3.0 as of 28 January 2020. Also refer to the documentation for installation guides and additional support.
 
 **1.1 Methods and Implementation**
 
@@ -26,10 +28,10 @@ This command applies heliocentric corrections to the raw magnitudes. In doing so
 
 Applies phase corrections to the given magnitudes. If --heliocentric and --phase are called at the same time then the phase angle corrections will be applied onto the heliocentric corrected magnitudes, else JPL will be queried for the first time and phase corrections will be applied to the raw magnitudes. The phase angles are cross referenced to Dave Schleicher's Composite Dust Function for Comets.
 
-**1.2.3 --stats
+**1.2.3 --stats**
 
 Performs the statistical analysis. The program will automatically split any dataset into pre- and post-perihelion and perform the statistics on each set separately. ICQSplitter follows procedures for regression analysis through the methods of singular value decomposition using NumPy's Linear Algebra package. After a polynomial fit has been taken to convergence, Python's Statistics package is used to perform the Students t and probability tests on each observer's data. If one observer is found to fail the stationarity test in either epoch, then that observer is removed from the dataset and the procedure is repeated. The --stats command is always issued after --heliocentric and --phase (if those commands have also been given). 
 
-**1.2.4 --plot
+**1.2.4 --plot**
 
 This command will produce plots with Pythons matplotlib package. For instance, if a user runs her code on data with the --phase and --stats commands then --plots will produce individual graphs of m_{tot}, m_{helio}, m_{phase}, and m_{shift}. 
